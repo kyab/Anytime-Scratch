@@ -9,9 +9,13 @@
 /* Begin PBXBuildFile section */
 		EB968B071EDC544800CAE50B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B061EDC544800CAE50B /* AppDelegate.m */; };
 		EB968B0A1EDC544800CAE50B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B091EDC544800CAE50B /* main.m */; };
-		EB968B0D1EDC544800CAE50B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B0C1EDC544800CAE50B /* ViewController.m */; };
 		EB968B0F1EDC544800CAE50B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EB968B0E1EDC544800CAE50B /* Assets.xcassets */; };
-		EB968B121EDC544800CAE50B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EB968B101EDC544800CAE50B /* Main.storyboard */; };
+		EB968B1A1EDC547500CAE50B /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = EB968B191EDC547500CAE50B /* MainMenu.xib */; };
+		EB968B2A1EDCEBE800CAE50B /* AppController.mm in Sources */ = {isa = PBXBuildFile; fileRef = EB968B251EDCEBE800CAE50B /* AppController.mm */; };
+		EB968B2B1EDCEBE800CAE50B /* AudioEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B271EDCEBE800CAE50B /* AudioEngine.m */; };
+		EB968B301EDCEC0200CAE50B /* RingBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B2C1EDCEC0200CAE50B /* RingBuffer.m */; };
+		EB968B311EDCEC0200CAE50B /* RingView.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B2D1EDCEC0200CAE50B /* RingView.m */; };
+		EB968B321EDCEC0200CAE50B /* TurnTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B2F1EDCEC0200CAE50B /* TurnTableView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,11 +23,19 @@
 		EB968B051EDC544800CAE50B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		EB968B061EDC544800CAE50B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		EB968B091EDC544800CAE50B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		EB968B0B1EDC544800CAE50B /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		EB968B0C1EDC544800CAE50B /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		EB968B0E1EDC544800CAE50B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		EB968B111EDC544800CAE50B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		EB968B131EDC544800CAE50B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EB968B191EDC547500CAE50B /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
+		EB968B241EDCEBE800CAE50B /* AppController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppController.h; sourceTree = "<group>"; };
+		EB968B251EDCEBE800CAE50B /* AppController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppController.mm; sourceTree = "<group>"; };
+		EB968B261EDCEBE800CAE50B /* AudioEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioEngine.h; sourceTree = "<group>"; };
+		EB968B271EDCEBE800CAE50B /* AudioEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioEngine.m; sourceTree = "<group>"; };
+		EB968B281EDCEBE800CAE50B /* RingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
+		EB968B291EDCEBE800CAE50B /* RingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RingView.h; sourceTree = "<group>"; };
+		EB968B2C1EDCEC0200CAE50B /* RingBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RingBuffer.m; sourceTree = "<group>"; };
+		EB968B2D1EDCEC0200CAE50B /* RingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RingView.m; sourceTree = "<group>"; };
+		EB968B2E1EDCEC0200CAE50B /* TurnTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TurnTableView.h; sourceTree = "<group>"; };
+		EB968B2F1EDCEC0200CAE50B /* TurnTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TurnTableView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,12 +68,20 @@
 		EB968B041EDC544800CAE50B /* Anytime Scratch */ = {
 			isa = PBXGroup;
 			children = (
+				EB968B241EDCEBE800CAE50B /* AppController.h */,
+				EB968B251EDCEBE800CAE50B /* AppController.mm */,
+				EB968B261EDCEBE800CAE50B /* AudioEngine.h */,
+				EB968B271EDCEBE800CAE50B /* AudioEngine.m */,
+				EB968B2E1EDCEC0200CAE50B /* TurnTableView.h */,
+				EB968B2F1EDCEC0200CAE50B /* TurnTableView.m */,
+				EB968B281EDCEBE800CAE50B /* RingBuffer.h */,
+				EB968B2C1EDCEC0200CAE50B /* RingBuffer.m */,
+				EB968B291EDCEBE800CAE50B /* RingView.h */,
+				EB968B2D1EDCEC0200CAE50B /* RingView.m */,
 				EB968B051EDC544800CAE50B /* AppDelegate.h */,
 				EB968B061EDC544800CAE50B /* AppDelegate.m */,
-				EB968B0B1EDC544800CAE50B /* ViewController.h */,
-				EB968B0C1EDC544800CAE50B /* ViewController.m */,
+				EB968B191EDC547500CAE50B /* MainMenu.xib */,
 				EB968B0E1EDC544800CAE50B /* Assets.xcassets */,
-				EB968B101EDC544800CAE50B /* Main.storyboard */,
 				EB968B131EDC544800CAE50B /* Info.plist */,
 				EB968B081EDC544800CAE50B /* Supporting Files */,
 			);
@@ -136,7 +156,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EB968B0F1EDC544800CAE50B /* Assets.xcassets in Resources */,
-				EB968B121EDC544800CAE50B /* Main.storyboard in Resources */,
+				EB968B1A1EDC547500CAE50B /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,24 +167,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EB968B0D1EDC544800CAE50B /* ViewController.m in Sources */,
+				EB968B311EDCEC0200CAE50B /* RingView.m in Sources */,
+				EB968B2B1EDCEBE800CAE50B /* AudioEngine.m in Sources */,
+				EB968B2A1EDCEBE800CAE50B /* AppController.mm in Sources */,
 				EB968B0A1EDC544800CAE50B /* main.m in Sources */,
+				EB968B301EDCEC0200CAE50B /* RingBuffer.m in Sources */,
+				EB968B321EDCEC0200CAE50B /* TurnTableView.m in Sources */,
 				EB968B071EDC544800CAE50B /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		EB968B101EDC544800CAE50B /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				EB968B111EDC544800CAE50B /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		EB968B141EDC544800CAE50B /* Debug */ = {
@@ -301,6 +314,7 @@
 				EB968B181EDC544800CAE50B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
