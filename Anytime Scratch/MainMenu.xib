@@ -163,7 +163,7 @@
                     <button verticalHuggingPriority="750" misplaced="YES" id="MXn-wR-EHV">
                         <rect key="frame" x="463" y="66" width="101" height="92"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
-                        <buttonCell key="cell" type="square" title="Table [S]top" bezelStyle="shadowlessSquare" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="kEd-8w-bf9">
+                        <buttonCell key="cell" type="square" title="Table [S]top" bezelStyle="shadowlessSquare" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="kEd-8w-bf9">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
                             <font key="font" metaFont="system"/>
                             <string key="keyEquivalent">s</string>

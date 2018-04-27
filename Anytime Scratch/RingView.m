@@ -49,10 +49,10 @@
     [playLine lineToPoint:NSMakePoint(playPoint,self.bounds.size.height)];
     [playLine setLineWidth:3.0];
  
-    [NSColor.blueColor set];
+    [NSColor.orangeColor set];
     [playLine stroke];
     
-    [NSColor.redColor set];
+    [NSColor.lightGrayColor set];
     [recordLine stroke];
  
     

@@ -26,13 +26,11 @@
         _timer = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(onTimer:) userInfo:nil repeats:YES];
         [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
     }
-    
 }
 
 -(void)stop{
     [_timer invalidate];
     _timer = nil;
-    
 }
 
 -(double) baseRadS{
@@ -87,18 +85,34 @@ double rad2deg(double rad){
     
     CGFloat centerX = self.bounds.size.width/2;
     CGFloat centerY = self.bounds.size.height/2;
-    NSBezierPath *line = [NSBezierPath bezierPath];
-    [line moveToPoint:NSMakePoint(centerX, centerY)];
-    double theta = _currentRad;
-    [line lineToPoint:NSMakePoint(centerX + r*cos(theta), centerY + r*sin(theta))];
 
+
+    
+    NSBezierPath *lineRecord = [NSBezierPath bezierPath];
+    [lineRecord moveToPoint:NSMakePoint(centerX,centerY)];
+    double thetaRecordRad = [_ring recordFrame]/44100.0 * (-33.3/60 * 2 * M_PI);
+    [lineRecord lineToPoint:NSMakePoint(centerX + r*cos(thetaRecordRad)/3, centerY + r*sin(thetaRecordRad)/3)];
+    [[NSColor lightGrayColor] set];
+    [lineRecord setLineWidth:1.0];
+    [lineRecord stroke];
+    
+    
+    
+    
+    NSBezierPath *linePlay = [NSBezierPath bezierPath];
+    [linePlay moveToPoint:NSMakePoint(centerX,centerY)];
+    double thetaPlayRad = [_ring playFrame]/44100.0 * (-33.3/60 * 2 * M_PI);
+    [linePlay lineToPoint:NSMakePoint(centerX + r*cos(thetaPlayRad), centerY + r*sin(thetaPlayRad))];
     if (_pressing){
-        [[NSColor orangeColor] set];
+        [[NSColor orangeColor] set ];
     }else{
-        [[NSColor cyanColor] set];
+        [[NSColor orangeColor] set];
     }
-    [line setLineWidth:5.0];
-    [line stroke];
+    [linePlay setLineWidth:5.0];
+    [linePlay stroke];
+    
+    
+
     
 }
 
@@ -124,10 +138,6 @@ double rad2deg(double rad){
         _startOffsetRad = acos(_startOffsetRad);
         if (y < 0 ) _startOffsetRad = 2*M_PI - _startOffsetRad;
         _startOffsetRad = _startOffsetRad - _currentRad;
-
-        
-//        _prevRad = _currentRad;
-//        _prevSec = [theEvent timestamp];
         
         [self setNeedsDisplay:YES];
         [[NSCursor openHandCursor] set];
@@ -142,7 +152,7 @@ double rad2deg(double rad){
 
 -(void)mouseDragged:(NSEvent *)theEvent{
     if (_pressing == NO) return;
-    if (_pressing ==YES) return;
+    if (_pressing == YES) return;
     
     CGFloat x1 = [self eventLocation:theEvent].x;
     CGFloat y1 = [self eventLocation:theEvent].y;
@@ -168,15 +178,9 @@ double rad2deg(double rad){
             delta = (2*M_PI-_prevRad) + _currentRad;
         }
     }
-
-//    NSLog(@"delta = %3.3f(%f to %f)", rad2deg(delta), rad2deg(_prevRad) , rad2deg(_currentRad));
-    
     
     double speed = delta / ([theEvent timestamp] - _prevSec);
     _speedRate = speed / [self baseRadS];
-//    if (fabs(_speedRate) < 0.001 ){
-//        _speedRate = 0.001;
-//    }
     
     [_delegate turnTableSpeedRateChanged];
     
@@ -232,10 +236,7 @@ double rad2deg(double rad){
         
         double speed = delta / 0.01;
         _speedRate = speed / [self baseRadS];
-//        if (fabs(_speedRate) < 0.001){
-//            _speedRate = 0.001;
-//        }
-//        
+
         [_delegate turnTableSpeedRateChanged];
     }
     
@@ -255,6 +256,11 @@ double rad2deg(double rad){
 -(void)setDelegate:(id<TurnTableDelegate>)delegate{
     _delegate = delegate;
 }
+
+-(void)setRingBuffer:(RingBuffer *)ring{
+    _ring = ring;
+}
+
 
 -(void)setReverse:(BOOL)reverse{
     _reverse = reverse;

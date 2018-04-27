@@ -43,6 +43,7 @@
 
     
     [_turnTable setDelegate:(id<TurnTableDelegate>)self];
+    [_turnTable setRingBuffer:_ring];
     [_turnTable start];
     
     [_chkSlip setState:NSOnState];
@@ -66,13 +67,17 @@
     [_ae changeSystemOutputDeviceToBGM];
     [_ae startInput];
     _fadeRequired = YES;
+    
+    _tableStopped = NO;
+    
     [_ae startOutput];
     
 }
 
 -(void)terminate{
-    [_ae stopInput];
     [_ae stopOutput];
+
+    [_ae stopInput];
     [_ae restoreSystemOutputDevice];
     
 }
@@ -95,12 +100,49 @@
         return noErr;
     }
     
+    if (_tableStopped){
+        float *leftPtr = [_ring readPtrLeft];
+        float *rightPtr = [_ring readPtrRight];
+        
+        if (!leftPtr || !rightPtr){
+            //not enough buffer
+            //zero output
+            NSLog(@"SUDDEN ZERO");
+            UInt32 sampleNum = inNumberFrames;
+            float *pLeft = (float *)ioData->mBuffers[0].mData;
+            float *pRight = (float *)ioData->mBuffers[1].mData;
+            bzero(pLeft, sizeof(float)*sampleNum );
+            bzero(pRight, sizeof(float)*sampleNum );
+            return noErr;
+        }
+        if (!_speedChanging){
+            UInt32 sampleNum = inNumberFrames;
+            float *pLeft = (float *)ioData->mBuffers[0].mData;
+            float *pRight = (float *)ioData->mBuffers[1].mData;
+            bzero(pLeft, sizeof(float)*sampleNum );
+            bzero(pRight, sizeof(float)*sampleNum );
+            return noErr;
+        }else{
+            SInt32 consumed = 0;
+            [self convertAtRateFromLeft:leftPtr right:rightPtr ToSamples:inNumberFrames rate:_speedRate consumedFrames:&consumed];
+            
+            memcpy(ioData->mBuffers[0].mData,
+                   _conv_left, sizeof(float) * inNumberFrames);
+            memcpy(ioData->mBuffers[1].mData,
+                   _conv_right, sizeof(float) * inNumberFrames);
+            
+            [_ring advanceReadPtrSample:consumed];
+        }
+        return noErr;
+    }
+    
+    
     if (!_speedChanging){
 
         float *leftPtr = [_ring readPtrLeft];
         float *rightPtr = [_ring readPtrRight];
         
-        if (!leftPtr){
+        if (!leftPtr || !rightPtr){
             //not enough buffer
             //zero output
             NSLog(@"SUDDEN ZERO");
@@ -134,9 +176,8 @@
                     NSLog(@"over value(%f) at index : %d (normal)", rightPtr[i], i);
                 }
             }
-            
-        
             [_ring advanceReadPtrSample:inNumberFrames];
+            
         }else{
             [self fadeInFromLeft:leftPtr right:rightPtr ToSamples:inNumberFrames];
             memcpy(ioData->mBuffers[0].mData,
@@ -158,8 +199,8 @@
             UInt32 sampleNum = inNumberFrames;
             float *pLeft = (float *)ioData->mBuffers[0].mData;
             float *pRight = (float *)ioData->mBuffers[1].mData;
-            bzero(pLeft,sizeof(float)*sampleNum );
-            bzero(pRight,sizeof(float)*sampleNum );
+            bzero(pLeft, sizeof(float)*sampleNum );
+            bzero(pRight, sizeof(float)*sampleNum );
             return noErr;
         }
         
@@ -352,15 +393,19 @@ double fadeOutFactor(UInt32 offset){
 
 -(void)turnTableSpeedRateChanged{
     
-    _speedChanging = YES;
     _speedRate = [_turnTable speedRate];
     if (_speedRate == 1.0){
-        if (_slip){
-            [self followNow:self];
+        if (_tableStopped){
+            _speedChanging = NO;
+        }else{
+            _speedChanging = NO;
+            if (_slip){
+                [self followNow:self];
+            }
         }
-        _speedChanging = NO;
-
+        return;
     }
+    _speedChanging = YES;
 }
 
 - (IBAction)inputDeviceSelected:(id)sender {
@@ -447,19 +492,20 @@ double fadeOutFactor(UInt32 offset){
 }
 
 - (IBAction)tableStopClicked:(id)sender {
-    if (_btnTableStop.state == NSOffState){
+    if (_btnTableStop.state == NSOnState){
         if (_tableStopTimer){
             [_tableStopTimer invalidate];
         }
+        
+        _tableStopped = NO;
+        _speedChanging = NO;
+        _speedRate = 1.0;
         if (_slip){
-            _speedChanging = NO;
-            _speedRate = 1.0;
             [self followNow:self];
-        }else{
-            _speedChanging = NO;
-            _speedRate = 1.0;
         }
+        
         [_btnTableStop setTitle:@"Table [S]top"];
+        
     }else{
         _tableStopTimer = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(tableStopTimer:) userInfo:nil repeats:YES];
         [_btnTableStop setTitle:@"Table [S]tart"];
@@ -470,6 +516,7 @@ double fadeOutFactor(UInt32 offset){
     if (_speedRate < 0.01f){
         _speedRate = 0.0f;
         [_tableStopTimer invalidate];
+        _tableStopped = YES;
         return;
     }else{
         _speedChanging = YES;
@@ -518,7 +565,6 @@ double fadeOutFactor(UInt32 offset){
         float meanBPM = sum / _bpmHistory.count;
         _bpm = meanBPM;
         [_lblBPM setStringValue:[NSString stringWithFormat:@"%.02f",_bpm]];
-//        [_lblBPM setDoubleValue:_bpm];
     }
 }
 

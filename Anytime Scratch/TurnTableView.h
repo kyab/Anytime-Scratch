@@ -7,6 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "RingBuffer.h"
 
 @protocol TurnTableDelegate <NSObject>
 @optional
@@ -17,6 +18,9 @@
 @interface TurnTableView : NSView{
     BOOL _pressing;
     double _currentRad;
+    double _currentRadPlay;
+    
+    RingBuffer *_ring;
     
     CGFloat _startOffsetRad;
     
@@ -38,6 +42,7 @@
 }
 
 -(void)setDelegate:(id<TurnTableDelegate>)delegate;
+-(void)setRingBuffer:(RingBuffer *)ring;
 -(void)start;
 -(void)stop;
 -(double)speedRate;

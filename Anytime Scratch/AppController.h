@@ -51,6 +51,8 @@
     BOOL _slip;
     
     NSTimer *_tableStopTimer;
+    BOOL _tableStopped;
+    
     
     Boolean _speedChanging;
     double _speedRate;
