@@ -19,6 +19,8 @@
     }
     [_ae setRenderDelegate:(id<AudioEngineDelegate>)self];
     
+//    [_ae testAirPlay];
+    
     _ring = [[RingBuffer alloc] init];
     [_ringView setRingBuffer:_ring];
     
@@ -29,7 +31,7 @@
             [_popupInputDevice addItemWithTitle:[inputs objectAtIndex:i]];
         }
     }
-    [_popupInputDevice selectItemWithTitle:@"Background Music Device"];
+    [_popupInputDevice selectItemWithTitle:@"Background Music"];
     
     
     [_popupOutputDevice removeAllItems];
@@ -71,6 +73,7 @@
     _tableStopped = NO;
     
     [_ae startOutput];
+    
     
 }
 

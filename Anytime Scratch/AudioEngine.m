@@ -219,7 +219,7 @@ OSStatus MyRenderIn(void *inRefCon,
      Some devices support volume control only via each channel.  (Built-In Output)
      Some devices support both of master or channels.
      */
-    AudioDeviceID bgm = [self getDeviceForName:@"Background Music Device"];
+    AudioDeviceID bgm = [self getDeviceForName:@"Background Music"];
 
     Float32 scalar = 0;
     UInt32 size = sizeof(Float32);
@@ -266,7 +266,7 @@ OSStatus PropListenerProc( AudioObjectID                       inObjectID,
 }
 
 -(BOOL)syncVolume{
-    AudioDeviceID bgm = [self getDeviceForName:@"Background Music Device"];
+    AudioDeviceID bgm = [self getDeviceForName:@"Background Music"];
 
     Float32 scalar = 0;
     UInt32 size = sizeof(Float32);
@@ -368,7 +368,7 @@ OSStatus PropListenerProc( AudioObjectID                       inObjectID,
         }
     }
     
-    AudioDeviceID inDevID = [self getDeviceForName:@"Background Music Device"];
+    AudioDeviceID inDevID = [self getDeviceForName:@"Background Music"];
 
     ret = AudioUnitSetProperty(_inputUnit,
                                kAudioOutputUnitProperty_CurrentDevice,
@@ -488,9 +488,12 @@ OSStatus PropListenerProc( AudioObjectID                       inObjectID,
             return -1;
         }
         
+        NSLog(@"dev : %@", name);
+        
         if (name != NULL){
             if (CFStringCompare(name, (CFStringRef)devName,kCFCompareCaseInsensitive) == kCFCompareEqualTo){
                 result = objects[i];
+                break;
             }
             CFRelease(name);
         }
@@ -583,7 +586,7 @@ OSStatus PropListenerProc( AudioObjectID                       inObjectID,
         return NO;
     }
     
-    AudioDeviceID bgmOut = [self getDeviceForName:@"Background Music Device"];
+    AudioDeviceID bgmOut = [self getDeviceForName:@"Background Music"];
     
     ret = AudioObjectSetPropertyData(kAudioObjectSystemObject,
                                               &propAddress,
@@ -681,6 +684,7 @@ OSStatus PropListenerProc( AudioObjectID                       inObjectID,
         if (num2 > 0 ){
             [ar addObject:(__bridge NSString *)name];
         }
+
         CFRelease(name);
         
     }
@@ -724,6 +728,72 @@ OSStatus PropListenerProc( AudioObjectID                       inObjectID,
     
     
     return YES;
+    
+}
+
+-(BOOL)testAirPlay{
+    
+    //cant support AirPlay from 10.11!!!
+    //Apple dont allow me to enumurate AirPlay Devices,
+    //So it cant be settable as HAL Unit's kAudioOutputUnitProperty_CurrentDevice, nor System's Default Output Device.
+    // Suspecting iTunes uses some magic. Could not find any application that does magic to allow Output devices to AirPlay devices.
+    // Bug : https://forums.developer.apple.com/thread/17664
+    
+    
+    NSLog(@"testAirPlay");
+    
+    AudioObjectPropertyAddress propAddress;
+    propAddress.mSelector = kAudioHardwarePropertyTranslateUIDToDevice;
+    propAddress.mScope = kAudioObjectPropertyScopeGlobal;
+    propAddress.mElement = kAudioObjectPropertyElementMaster;
+    
+    CFStringRef airplayDeviceUID = CFSTR("AirPlay");
+    UInt32 dataSize = 0;
+    OSStatus ret;
+    ret = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &propAddress, sizeof(CFStringRef),
+                                         &airplayDeviceUID, &dataSize);
+    
+    if (FAILED(ret)){
+        NSError *err = [NSError errorWithDomain:NSOSStatusErrorDomain code:ret userInfo:nil];
+        NSLog(@"Failed to get Device for AirPlay = %d(%@)", ret, [err description]);
+        return NO;
+    }
+    
+    
+    AudioDeviceID airplayDeviceId;
+    ret = AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                                     &propAddress,
+                                     sizeof(CFStringRef),
+                                     &airplayDeviceUID,
+                                     &dataSize,
+                                     &airplayDeviceId);
+    
+    if (FAILED(ret)){
+        NSError *err = [NSError errorWithDomain:NSOSStatusErrorDomain code:ret userInfo:nil];
+        NSLog(@"Failed to get Device for AirPlay 2 = %d(%@)", ret, [err description]);
+        return NO;
+    }
+    
+    NSLog(@"deviceId for AirPlay = 0x%x", airplayDeviceId);
+    
+    
+    CFStringRef name = NULL;
+    propAddress.mSelector = kAudioObjectPropertyName;
+    UInt32 size = sizeof(CFStringRef);
+    ret = AudioObjectGetPropertyData(airplayDeviceId, &propAddress, 0, NULL, &size, &name);
+    if (FAILED(ret)){
+        NSError *err = [NSError errorWithDomain:NSOSStatusErrorDomain code:ret userInfo:nil];
+        NSLog(@"Failed to Get Name = %d(%@)", ret, [err description]);
+        return NO;
+    }
+    
+    
+    
+    
+    
+    
+    return YES;
+    
     
 }
 

@@ -50,6 +50,9 @@
 -(BOOL)changeSystemOutputDeviceToBGM;
 -(BOOL)restoreSystemOutputDevice;
 
+
+-(BOOL)testAirPlay;
+
 -(NSArray *)listDevices:(BOOL)output;
 -(BOOL)changeInputDeviceTo:(NSString *)devName;
 
