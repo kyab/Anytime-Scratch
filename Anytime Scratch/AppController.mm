@@ -74,6 +74,8 @@
     
     [_ae startOutput];
     
+    [self testMIDI];
+    
     
 }
 
@@ -110,7 +112,7 @@
         if (!leftPtr || !rightPtr){
             //not enough buffer
             //zero output
-            NSLog(@"SUDDEN ZERO");
+//            NSLog(@"SUDDEN ZERO");
             UInt32 sampleNum = inNumberFrames;
             float *pLeft = (float *)ioData->mBuffers[0].mData;
             float *pRight = (float *)ioData->mBuffers[1].mData;
@@ -148,7 +150,7 @@
         if (!leftPtr || !rightPtr){
             //not enough buffer
             //zero output
-            NSLog(@"SUDDEN ZERO");
+//            NSLog(@"SUDDEN ZERO");
             UInt32 sampleNum = inNumberFrames;
             float *pLeft = (float *)ioData->mBuffers[0].mData;
             float *pRight = (float *)ioData->mBuffers[1].mData;
@@ -175,7 +177,7 @@
                    rightPtr, sizeof(float) * inNumberFrames);
             
             for (int i = 0 ; i < inNumberFrames; i++){
-                if (rightPtr[i] < -1.0 || rightPtr[i] > 1.0){
+                if (rightPtr[i] < -1.1 || rightPtr[i] > 1.1){
                     NSLog(@"over value(%f) at index : %d (normal)", rightPtr[i], i);
                 }
             }
@@ -198,7 +200,7 @@
         if (!leftPtr || !rightPtr){
             //not enough buffer
             //zero output
-            NSLog(@"SUDDEN ZERO");
+//            NSLog(@"SUDDEN ZERO");
             UInt32 sampleNum = inNumberFrames;
             float *pLeft = (float *)ioData->mBuffers[0].mData;
             float *pRight = (float *)ioData->mBuffers[1].mData;
@@ -577,6 +579,117 @@ double fadeOutFactor(UInt32 offset){
 
 - (IBAction)loopx1_4Cliked:(id)sender {
     _loopLength /= 4;
+}
+
+
+void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *srcConnRefCon)
+{
+    MIDIPacket *packet = (MIDIPacket *)&(pktList->packet[0]);
+    UInt32 packetCount = pktList->numPackets;
+ 
+    AppController *appController = (__bridge AppController *)readProcRefCon;
+    
+    
+    for (NSInteger i = 0; i < packetCount; i++) {
+        
+        Byte mes = packet->data[0] & 0xF0;
+        Byte ch = packet->data[0] & 0x0F;
+        
+        if ((mes == 0x90) && (packet->data[2] != 0)) {
+//            NSLog(@"note on number = %2.2x / velocity = %2.2x / channel = %2.2x",
+//                  packet->data[1], packet->data[2], ch);
+            [appController onMIDINoteOn:packet->data[1] vel:packet->data[2] chan:ch];
+        } else if (mes == 0x80 || mes == 0x90) {
+//            NSLog(@"note off number = %2.2x / velocity = %2.2x / channel = %2.2x",
+//                  packet->data[1], packet->data[2], ch);
+            [appController onMIDINoteOff:packet->data[1] vel:packet->data[2] chan:ch];
+        } else if (mes == 0xB0) {
+//            NSLog(@"cc number = %2.2x / data = %2.2x / channel = %2.2x",
+//                  packet->data[1], packet->data[2], ch);
+            [appController onMIDICC:packet->data[1] data:packet->data[2] chan:ch];
+             
+        } else {
+            NSLog(@"etc");
+        }
+        packet = MIDIPacketNext(packet);
+    }
+}
+
+-(void)onMIDICC:(int)number data:(int)data chan:(int)chan{
+//    NSLog(@"onMIDICC number:%d, data:%d", number, data);
+    if (number == 33 || number == 34){
+        [_turnTable onMIDIScratch:number value:data chan:chan];
+    }
+}
+
+-(void)onMIDINoteOn:(int)noteNumber vel:(int)vel chan:(int)chan{
+    if (noteNumber == 54){
+        [_turnTable onMIDITouchStart];
+    }
+}
+
+-(void)onMIDINoteOff:(int)noteNumber vel:(int)vel chan:(int)chan{
+    if (noteNumber == 54){
+        [_turnTable onMIDITouchStop];
+    }
+}
+
+
+
+
+
+
+
+- (void)testMIDI{
+    NSLog(@"testMIDI");
+    
+    OSStatus err;
+    CFStringRef strEndPointRef = NULL;
+    
+    MIDIClientRef clientRef;
+    MIDIPortRef inputPortRef;
+    
+    //MIDIClient creation
+    NSString *clientName = @"inputClient";
+    err = MIDIClientCreate((__bridge CFStringRef)clientName, NULL, NULL, &clientRef);
+    if (err != noErr){
+        NSLog(@"MIDIClientCreate err = %d", err);
+        return;
+    }
+    
+    //MIDIPort Creation
+    NSString *inputPortName = @"inputPort";
+    err = MIDIInputPortCreate(clientRef, (__bridge CFStringRef)inputPortName,
+                              MIDIInputProc, (__bridge void *)self, &inputPortRef);
+    if (err != noErr){
+        NSLog(@"MIDInputPortCreate err = %d", err);
+        return;
+    }
+    
+    
+    ItemCount sourceCount = MIDIGetNumberOfSources();
+    
+    for(ItemCount i = 0 ; i < sourceCount; i++){
+        
+        MIDIEndpointRef endPointRef = MIDIGetSource(i);
+        
+        //get name for this MIDI endpoint.
+        err = MIDIObjectGetStringProperty(endPointRef,
+                                          kMIDIPropertyName, &strEndPointRef);
+        if (err != noErr){
+            NSLog(@"err = %d", err);
+            return;
+        }else{
+            NSLog(@"EndPoint =  %@", strEndPointRef);
+        }
+        
+        //connect
+        err = MIDIPortConnectSource(inputPortRef, endPointRef, NULL);
+        if (err != noErr){
+            NSLog(@"MIDIPortConnectSource err = %d", err);
+            return;
+        }
+    }
 }
 
 @end

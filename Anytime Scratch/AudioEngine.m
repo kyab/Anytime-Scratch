@@ -49,11 +49,11 @@ OSStatus MyRenderIn(void *inRefCon,
                     UInt32 inNumberFrames,
                     AudioBufferList *ioData){
     {
-        //        static UInt32 count = 0;
-        //        if ((count % 100) == 0){
-        //            NSLog(@"LoopbackSide inputcallback inNumberFrames = %u", inNumberFrames);
-        //        }
-        //        count++;
+//                static UInt32 count = 0;
+//                if ((count % 100) == 0){
+//                    NSLog(@"LoopbackSide inputcallback inNumberFrames = %u", inNumberFrames);
+//                }
+//                count++;
     }
     
     AudioEngine *engine = (__bridge AudioEngine *)inRefCon;

@@ -17,6 +17,8 @@
 
 @interface TurnTableView : NSView{
     BOOL _pressing;
+    BOOL _MIDIScratching;
+    BOOL _MIDITouching;
     double _currentRad;
     double _currentRadPlay;
     
@@ -26,6 +28,7 @@
     
     NSTimer *_timer;
     NSTimer *_timer2;   //scratch monitor
+    NSTimer *_timer3;   //scratch monitor(MIDI)
     
     NSTimeInterval _prevSec;
     double _prevRad;
@@ -47,4 +50,7 @@
 -(void)stop;
 -(double)speedRate;
 -(void)setReverse:(BOOL)reverse;
+-(void)onMIDITouchStart;
+-(void)onMIDITouchStop;
+-(void)onMIDIScratch:(int)number value:(int)value chan:(int)chan;
 @end

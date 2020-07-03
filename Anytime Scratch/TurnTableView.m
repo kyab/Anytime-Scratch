@@ -15,9 +15,13 @@
     _currentRad = 28 * (M_PI / 180);
     _speedRate = 1.0f;
     
-    
     _timer2 = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(onTimerScratch:) userInfo:nil repeats:YES];
+
     [[NSRunLoop currentRunLoop] addTimer:_timer2 forMode:NSRunLoopCommonModes];
+    
+    _timer3 = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self
+                                             selector:@selector(onTimerMIDIScratch:) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:_timer3 forMode:NSRunLoopCommonModes];
     
 }
 
@@ -46,12 +50,15 @@ double rad2deg(double rad){
 }
 
 -(void)onTimer:(NSTimer *)t{
-    if (_pressing ) return;
-    _currentRad += [self baseRadS]*0.01;
-    if (_currentRad > 2*M_PI){
-        _currentRad -= 2*M_PI;
-    }else if (_currentRad < 0){
-        _currentRad += 2*M_PI;
+    if (_pressing) return;
+    
+    if (!_MIDIScratching) {
+        _currentRad += [self baseRadS]*0.01;
+        if (_currentRad > 2*M_PI){
+            _currentRad -= 2*M_PI;
+        }else if (_currentRad < 0){
+            _currentRad += 2*M_PI;
+        }
     }
     [self setNeedsDisplay:YES];
 }
@@ -151,46 +158,46 @@ double rad2deg(double rad){
 }
 
 -(void)mouseDragged:(NSEvent *)theEvent{
-    if (_pressing == NO) return;
-    if (_pressing == YES) return;
-    
-    CGFloat x1 = [self eventLocation:theEvent].x;
-    CGFloat y1 = [self eventLocation:theEvent].y;
-    
-    x1 = x1 - self.bounds.size.width/2;
-    y1 = y1 - self.bounds.size.height/2;
-    double theta = x1/sqrt(x1*x1 + y1*y1);
-    theta = acos(theta);
-    if (y1 <0 ) theta = 2*M_PI - theta;
-    _currentRad  = theta - _startOffsetRad;
-    if (_currentRad > 2*M_PI){
-        _currentRad = _currentRad -  2*M_PI;
-    }
-    if (_currentRad < 0){
-        _currentRad = 2*M_PI + _currentRad;
-    }
-
-    double delta  = _currentRad - _prevRad;
-    if (fabs(rad2deg(delta)) > 340){
-        if (_currentRad > _prevRad){
-            delta = -1.0*_prevRad - (2*M_PI - _currentRad);
-        }else{
-            delta = (2*M_PI-_prevRad) + _currentRad;
-        }
-    }
-    
-    double speed = delta / ([theEvent timestamp] - _prevSec);
-    _speedRate = speed / [self baseRadS];
-    
-    [_delegate turnTableSpeedRateChanged];
-    
-    _prevRad = _currentRad;
-    _prevSec = [theEvent timestamp];
-    _prevX = x1;
-    _prevY = y1;
-    
-    [self setNeedsDisplay:YES];
-    
+//    if (_pressing == NO) return;
+//    if (_pressing == YES) return;
+//
+//    CGFloat x1 = [self eventLocation:theEvent].x;
+//    CGFloat y1 = [self eventLocation:theEvent].y;
+//
+//    x1 = x1 - self.bounds.size.width/2;
+//    y1 = y1 - self.bounds.size.height/2;
+//    double theta = x1/sqrt(x1*x1 + y1*y1);
+//    theta = acos(theta);
+//    if (y1 <0 ) theta = 2*M_PI - theta;
+//    _currentRad  = theta - _startOffsetRad;
+//    if (_currentRad > 2*M_PI){
+//        _currentRad = _currentRad -  2*M_PI;
+//    }
+//    if (_currentRad < 0){
+//        _currentRad = 2*M_PI + _currentRad;
+//    }
+//
+//    double delta  = _currentRad - _prevRad;
+//    if (fabs(rad2deg(delta)) > 340){
+//        if (_currentRad > _prevRad){
+//            delta = -1.0*_prevRad - (2*M_PI - _currentRad);
+//        }else{
+//            delta = (2*M_PI-_prevRad) + _currentRad;
+//        }
+//    }
+//
+//    double speed = delta / ([theEvent timestamp] - _prevSec);
+//    _speedRate = speed / [self baseRadS];
+//
+//    [_delegate turnTableSpeedRateChanged];
+//
+//    _prevRad = _currentRad;
+//    _prevSec = [theEvent timestamp];
+//    _prevX = x1;
+//    _prevY = y1;
+//
+//    [self setNeedsDisplay:YES];
+//
 }
 
 -(void)mouseUp:(NSEvent *)theEvent{
@@ -247,6 +254,54 @@ double rad2deg(double rad){
     
     [self setNeedsDisplay:YES];
     
+}
+
+-(void)onTimerMIDIScratch:(NSTimer *)t{
+    if (!_MIDIScratching)return;
+    
+    double deltaRad = _currentRad - _prevRad;
+    double currentSec = [[NSDate date] timeIntervalSince1970];
+
+    double speed = deltaRad / (currentSec - _prevSec);
+    
+    if (speed == 0){
+        if (!_MIDITouching){
+            _MIDIScratching = NO;
+            _speedRate = 1.0f;
+            [_delegate turnTableSpeedRateChanged];
+            return;
+        }else{
+//            NSLog(@"speed : 0");
+        }
+    }
+    
+    _speedRate = speed / [self baseRadS];
+    [_delegate turnTableSpeedRateChanged];
+    
+    _prevRad = _currentRad;
+    _prevSec = currentSec;
+    
+}
+
+-(void)onMIDITouchStart{
+    _MIDITouching = YES;
+    _MIDIScratching = YES;
+    _prevRad = _currentRad;
+    _prevSec = [[NSDate date] timeIntervalSince1970];
+//    NSLog(@"scratch start");
+}
+
+-(void)onMIDITouchStop{
+    _MIDITouching = NO;
+    
+}
+
+-(void)onMIDIScratch:(int)number value:(int)value chan:(int)chan{
+    int delta = value - 64;
+    double deltaRad = 2 * M_PI /720.0 * delta;
+    
+    _currentRad -= deltaRad;
+
 }
 
 -(double)speedRate{
