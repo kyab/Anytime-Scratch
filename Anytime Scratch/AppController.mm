@@ -9,6 +9,8 @@
 #import "AppController.h"
 #import "AudioToolbox/AudioToolbox.h"
 
+#include <cmath>
+
 @implementation AppController
 
 -(void)awakeFromNib{
@@ -87,13 +89,249 @@
     
 }
 
+float sinFadeWindow(float fadeStartRate, float x, float val){
+    float y = 0;
+    if (x < 0 || x > 1) {
+        return 0;
+    }
+    if (x < fadeStartRate){
+        y = 1.0/2.0*sin(M_PI / fadeStartRate * x + 3.0 /2 * M_PI) + 1.0/2;
+    }else if (x < 1.0 - fadeStartRate) {
+        y = 1.0;
+    }else{
+        y = 1.0/2.0*sin(M_PI / fadeStartRate * x + 3.0 / 2.0 * M_PI
+                          -1.0/fadeStartRate * M_PI) + 1.0 / 2.0;
+    }
+    return val * y;
+
+}
+
+float crossfadeWindow(float fadeStartRate, float x, float val){
+    if (x < 0 || x > 1) { return 0; }
+
+    if (x < fadeStartRate) {
+        return val * (1.0 / fadeStartRate * x);
+    } else if (x < 1.0 - fadeStartRate) {
+        return val * 1.0;
+    } else {
+        return val * ((-1.0 / fadeStartRate * x + 1 / fadeStartRate));
+    }
+}
+
+static double linearInterporation(int x0, double y0, int x1, double y1, double x);
+
+
+const UInt32 GRAIN_SIZE = 6000;
+
+typedef struct _calcState{
+    SInt32 current_x;
+    SInt32 current_grain_start;
+    SInt32 current_x2;
+    SInt32 current_grain_start2;
+    
+    SInt32 start_x;
+} calcState;
+
+calcState g_calcState;
+calcState g_calcState_bk;
+
+double ratio = 1.0;
+double pitch = 1/ratio;
+
+//-(void)consume_backyard:(SInt32)offset{
+//    if (offset >= 0){
+//        for (UInt32 c = 0; c < offset; c++){
+//            if (g_calcState_bk.current_x > GRAIN_SIZE){
+//                g_calcState_bk.current_grain_start += GRAIN_SIZE;
+//                g_calcState_bk.current_x = 0;
+//            }
+//            if (g_calcState_bk.current_x2 > (SInt32)GRAIN_SIZE){
+//                g_calcState_bk.current_grain_start2 += GRAIN_SIZE;
+//                g_calcState_bk.current_x2 = 0;
+//            }
+//            g_calcState_bk.current_x++;
+//            g_calcState_bk.current_x2++;
+//
+//
+//            if (g_calcState_bk.current_grain_start + g_calcState_bk.current_x > RING_SIZE_SAMPLE){
+//                g_calcState_bk.current_grain_start = 0 - 6000;
+//                g_calcState_bk.current_x = 0;
+//                g_calcState_bk.current_grain_start2 = GRAIN_SIZE/2 - 6000;
+//                g_calcState_bk.current_x2 = -1 * round(GRAIN_SIZE/2 * ratio);
+//            }
+//
+//        }
+//    }else{
+//        for (SInt32 c = 0 ; c < -offset; c++){
+//
+//            g_calcState_bk.current_x--;
+//            g_calcState_bk.current_x2--;
+//
+//            if (g_calcState_bk.current_x < GRAIN_SIZE){
+//                g_calcState_bk.current_grain_start -= GRAIN_SIZE;
+//                g_calcState_bk.current_x = GRAIN_SIZE;
+//            }
+//            if (g_calcState_bk.current_x2< GRAIN_SIZE) {
+//                g_calcState_bk.current_grain_start2 -= GRAIN_SIZE;
+//                g_calcState_bk.current_x2 = GRAIN_SIZE;
+//            }
+//        }
+//    }
+//}
+
+-(void)consume:(SInt32)offset{
+    
+    if (offset >= 0){
+        for (UInt32 c = 0; c < offset; c++){
+            g_calcState.start_x++;
+
+
+            if( g_calcState.current_x > GRAIN_SIZE * (1+(ratio-1)/2) ){
+                g_calcState.current_grain_start += GRAIN_SIZE;
+                g_calcState.current_x = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+            }
+            if( g_calcState.current_x2 > GRAIN_SIZE * (1+(ratio-1)/2) ){
+                g_calcState.current_grain_start2 += GRAIN_SIZE;
+                g_calcState.current_x2 = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+            }
+            
+            g_calcState.current_x++;
+            g_calcState.current_x2++;
+
+
+            if (g_calcState.current_grain_start + g_calcState.current_x > RING_SIZE_SAMPLE){
+                g_calcState.current_grain_start = 0;
+                g_calcState.current_x = 0;
+                g_calcState.current_grain_start2 = GRAIN_SIZE/2;
+                g_calcState.current_x2 = -1 * round(GRAIN_SIZE/2 * ratio);
+            }
+            
+        }
+    }else{
+        for (SInt32 c = 0 ; c < -offset; c++){
+
+            g_calcState.current_x--;
+            g_calcState.current_x2--;
+
+            if (g_calcState.current_x < (GRAIN_SIZE * (1 + (ratio - 1) / 2) - GRAIN_SIZE) * (-1)) {
+                g_calcState.current_grain_start -= GRAIN_SIZE;
+                g_calcState.current_x = round(GRAIN_SIZE * (1 + (ratio - 1) / 2));
+            }
+            if (g_calcState.current_x2< (GRAIN_SIZE * (1 + (ratio - 1) / 2) - GRAIN_SIZE) * (-1)) {
+                g_calcState.current_grain_start2 -= GRAIN_SIZE;
+                g_calcState.current_x2 = round(GRAIN_SIZE * (1 + (ratio - 1) / 2));
+            }
+        }
+    }
+    
+    
+}
+
+-(void)getAt: (SInt32) offset outLeft:(float *)retValL outRight:(float *)retValR{
+    
+    const float fadeStartRate = -1/2.0 * ratio + 1;
+    
+    SInt32 current_x = g_calcState.current_x;
+    SInt32 current_grain_start = g_calcState.current_grain_start;
+    SInt32 current_x2 = g_calcState.current_x2;
+    SInt32 current_grain_start2 = g_calcState.current_grain_start2;
+    
+    *retValL = 0;
+    *retValR = 0;
+    
+    if (offset >= 0){
+        for (UInt32 c = 0; c < offset; c++){
+        
+            if( current_x > GRAIN_SIZE * (1+(ratio-1)/2) ){
+                current_grain_start += GRAIN_SIZE;
+                current_x = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+            }
+            if( current_x2 > GRAIN_SIZE * (1+(ratio-1)/2) ){
+                current_grain_start2 += GRAIN_SIZE;
+                current_x2 = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+            }
+            
+            current_x++;
+            current_x2++;
+        }
+    }else{
+        for (SInt32 c = 0; c < -offset; c++){
+            current_x--;
+            current_x2--;
+            
+            if (current_x < (GRAIN_SIZE * (1 + (ratio - 1) / 2) - GRAIN_SIZE) * (-1)) {
+                current_grain_start -= GRAIN_SIZE;
+                current_x = round(GRAIN_SIZE * (1 + (ratio - 1) / 2));
+            }
+            if (current_x2 < (GRAIN_SIZE * (1 + (ratio - 1) / 2) - GRAIN_SIZE) * (-1)) {
+                current_grain_start2 -= GRAIN_SIZE;
+                current_x2 = round(GRAIN_SIZE * (1 + (ratio - 1) / 2));
+            }
+        }
+    }
+    
+    {
+        const SInt32 x = current_grain_start + current_x;
+        float valL = 0;
+        float valR = 0;
+        
+        if ( 0 <= x ){
+            float *leftPtr = [_ring startPtrLeft];
+            float *rightPtr = [_ring startPtrRight];
+            
+            valL = *(leftPtr + x);
+            valR = *(rightPtr + x);
+            
+            if (current_x2 < 0){
+                
+            }else{
+                valL = sinFadeWindow(fadeStartRate , 1.0*current_x / GRAIN_SIZE, valL);
+                valR = sinFadeWindow(fadeStartRate , 1.0*current_x / GRAIN_SIZE, valR);
+            }
+            *retValL = valL;
+            *retValR = valR;
+        }
+    }
+    {
+        const SInt32 x2 = current_grain_start2 + current_x2;
+        float valL2 = 0;
+        float valR2 = 0;
+        
+        if (0 <= x2){
+            float *leftPtr = [_ring startPtrLeft];
+            float *rightPtr = [_ring startPtrRight];
+            
+            valL2 = *(leftPtr + x2);
+            valR2 = *(rightPtr + x2);
+            
+            valL2 = sinFadeWindow(fadeStartRate , 1.0*current_x2 / GRAIN_SIZE, valL2);
+            valR2 = sinFadeWindow(fadeStartRate , 1.0*current_x2 / GRAIN_SIZE, valR2);
+            
+            *retValL += valL2;
+            *retValR += valR2;
+        }
+    }
+        
+}
+
 
 - (OSStatus) outCallback:(AudioUnitRenderActionFlags *)ioActionFlags inTimeStamp:(const AudioTimeStamp *) inTimeStamp inBusNumber:(UInt32) inBusNumber inNumberFrames:(UInt32)inNumberFrames ioData:(AudioBufferList *)ioData{
     
+    //first time treatment
     static BOOL printNumFrames = NO;
     if (!printNumFrames){
         NSLog(@"outCallback NumFrames = %d", inNumberFrames);
         printNumFrames = YES;
+        
+        g_calcState.current_grain_start = 0 - 6000;
+        g_calcState.current_x = 0;
+        g_calcState.current_grain_start2 = GRAIN_SIZE/2 - 6000;
+        g_calcState.current_x2 = -1 * round(GRAIN_SIZE/2 * ratio);
+
+        g_calcState.current_grain_start = 0;
+        g_calcState.current_x = 0;
+        g_calcState.current_grain_start2 = GRAIN_SIZE/2;
+        g_calcState.current_x2 = -1 * round(GRAIN_SIZE/2 * ratio);
     }
     
     if (![_ae isPlaying]){
@@ -104,6 +342,128 @@
         bzero(pRight,sizeof(float)*sampleNum );
         return noErr;
     }
+    
+    if ([_ring isShortage]){
+        UInt32 sampleNum = inNumberFrames;
+        float *pLeft = (float *)ioData->mBuffers[0].mData;
+        float *pRight = (float *)ioData->mBuffers[1].mData;
+        bzero(pLeft,sizeof(float)*sampleNum );
+        bzero(pRight,sizeof(float)*sampleNum );
+        NSLog(@"shortage in out thread");
+        return noErr;
+    }
+    
+    if(0){
+        //experiment time stretch
+
+        for (UInt32 i = 0 ; i < inNumberFrames ; i++){
+            float left = 0.0;
+            float right = 0.0;
+            
+            [self getAt:i outLeft:&left outRight:&right];
+        
+            ((float *)ioData->mBuffers[0].mData)[i] = left;
+            ((float *)ioData->mBuffers[1].mData)[i] = right;
+        }
+        [self consume:inNumberFrames];
+
+        return noErr;
+        
+    }
+    
+    if(1){
+        //experiment pitch shift with scratch support
+
+        double speedRate = _speedRate;
+        
+        //before ratechange.
+        float reqNumberFrames = inNumberFrames * speedRate;
+        
+        //time stretch
+        UInt32 numberStretchedFrames = ceil(abs(reqNumberFrames* ratio)) + 1 + 1;
+        float *pTmpLeft = (float *)malloc(numberStretchedFrames * sizeof(float));
+        float *pTmpRight = (float *)malloc(numberStretchedFrames * sizeof(float));
+        
+        for (UInt32 i = 0; i < numberStretchedFrames; i++){
+            float left = 0;
+            float right = 0;
+            
+            SInt32 offset = 0;
+            if ((reqNumberFrames) > 0){
+                offset = i;
+            }else{
+                offset = -(SInt32)i;
+            }
+            
+            [self getAt:offset outLeft:&left outRight:&right];
+        
+            pTmpLeft[i] = left;
+            pTmpRight[i] = right;
+            if (abs(left) > 1.01 || abs(right) > 1.01){
+                NSLog(@"overflow in stretch phase left=%f, right=%f", left, right);
+            }
+        }
+
+        
+        [self consume:round(reqNumberFrames*ratio)];
+
+        UInt32 resampledNum = ceil(abs(reqNumberFrames))+1;
+        
+        //resampling to pitch shift
+        float *pFinLeft = (float *)malloc(resampledNum * sizeof(float));
+        float *pFinRight = (float *)malloc(resampledNum * sizeof(float));
+        
+        for (UInt32 i = 0 ; i < resampledNum; i++){
+            int x0 = floor(i * ratio);
+            int x1 = ceil(i * ratio);
+            
+            float y0_l = pTmpLeft[x0];
+            float y0_r = pTmpRight[x0];
+            float y1_l = pTmpLeft[x1];
+            float y1_r = pTmpRight[x1];
+            
+            pFinLeft[i] = linearInterporation(x0, y0_l, x1, y1_l , i*ratio);
+            pFinRight[i] = linearInterporation(x0, y0_r, x1, y1_r, i*ratio);
+            
+            if (i < inNumberFrames){
+                ((float *)ioData->mBuffers[0].mData)[i] = pFinLeft[i];
+                ((float *)ioData->mBuffers[1].mData)[i] = pFinRight[i];
+            }
+            if (abs(pFinLeft[i]) > 1.01 || abs(pFinRight[i]) > 1.01){
+                NSLog(@"overflow in shift phase left=%f, right=%f", pFinLeft[i] , pFinRight[i]);
+            }
+            
+        }
+        free(pTmpLeft);
+        free(pTmpRight);
+        
+
+        SInt32 consumedFrames = 0;
+        [self convertAtRateFromLeft:pFinLeft right:pFinRight ToSamples:inNumberFrames rate:speedRate
+                     consumedFrames: &consumedFrames];
+        free(pFinLeft);
+        free(pFinRight);
+        
+        if (_fadeRequired){
+            [self fadeInFromLeft:_conv_left right:_conv_right ToSamples:inNumberFrames];
+            _fadeRequired = false;
+        }
+        
+        memcpy(ioData->mBuffers[0].mData,
+               _conv_left, sizeof(float) * inNumberFrames);
+        memcpy(ioData->mBuffers[1].mData,
+               _conv_right, sizeof(float) * inNumberFrames);
+        
+         if (speedRate >= 0){
+              [_ring advanceReadPtrSample:consumedFrames];
+         }else{
+             [_ring advanceReadPtrSample:consumedFrames];
+         }
+
+        return noErr;
+        
+    }
+    
     
     if (_tableStopped){
         float *leftPtr = [_ring readPtrLeft];
@@ -200,7 +560,6 @@
         if (!leftPtr || !rightPtr){
             //not enough buffer
             //zero output
-//            NSLog(@"SUDDEN ZERO");
             UInt32 sampleNum = inNumberFrames;
             float *pLeft = (float *)ioData->mBuffers[0].mData;
             float *pRight = (float *)ioData->mBuffers[1].mData;
@@ -250,12 +609,7 @@
     
     OSStatus ret = [_ae readFromInput:ioActionFlags inTimeStamp:inTimeStamp inBusNumber:inBusNumber inNumberFrames:inNumberFrames ioData:bufferList];
     
-
-    if ( 0!=ret ){
-        NSError *err = [NSError errorWithDomain:NSOSStatusErrorDomain code:ret userInfo:nil];
-        NSLog(@"Failed AudioUnitRender err=%d(%@)", ret, [err description]);
-        return ret;
-    }
+    free(bufferList);
     
     if ([_ae isRecording]){
         [_ring advanceWritePtrSample:inNumberFrames];
@@ -277,7 +631,9 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
 
 
 -(void)convertAtRateFromLeft:(float *)leftPtr right:(float *)rightPtr ToSamples:(UInt32)inNumberFrames rate:(double)rate consumedFrames:(SInt32 *)consumed{
-    if (rate >= 0){
+    if (rate == 1.0 || rate==0.0 || rate ==-0.0){
+        [self convertAtRatePlusFromLeft:leftPtr right:rightPtr ToSamples:inNumberFrames rate:rate consumedFrames:consumed];
+    }else if(rate >= 0){
         [self convertAtRatePlusFromLeft:leftPtr right:rightPtr ToSamples:inNumberFrames rate:rate consumedFrames:consumed];
     }else{
         [self convertAtRateMinusFromLeft:leftPtr right:rightPtr ToSamples:inNumberFrames rate:rate consumedFrames:consumed];
@@ -300,6 +656,11 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
         float y1_r = rightPtr[x1];
         float y_r = linearInterporation(x0, y0_r, x1, y1_r, targetSample*rate);
         
+        if (abs(y_l) > 1.01 || abs(y_r) > 1.01){
+            NSLog(@"overflow at convertAtRatePlusFromLeft %f,%f", y_l, y_r);
+            
+        }
+
         _conv_left[targetSample] = y_l;
         _conv_right[targetSample] = y_r;
         *consumed = x1;
@@ -310,10 +671,11 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
 -(void)convertAtRateMinusFromLeft:(float *)leftPtr right:(float *)rightPtr ToSamples:(UInt32)inNumberFrames rate:(double)rate consumedFrames:(SInt32 *)consumed{
     
     *consumed = 0;
+    rate = -rate;
     
     for (int targetSample = 0 ; targetSample < inNumberFrames;targetSample++){
-        int x0 = ceil(targetSample*rate);
-        int x1 = floor(targetSample*rate);
+        int x0 = abs(floor(targetSample*rate));
+        int x1 = abs(ceil(targetSample*rate));
         
         float y0_l = *(leftPtr + x0);
         float y1_l = *(leftPtr + x1);
@@ -323,9 +685,13 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
         float y1_r = *(rightPtr + x1);
         float y_r = linearInterporation(x0, y0_r, x1, y1_r, targetSample*rate);
         
+        if (abs(y_l) > 1.01 || abs(y_r) > 1.01){
+            NSLog(@"overflow at convertAtRateMinusFromLeft %f,%f", y_l, y_r);
+            
+        }
         _conv_left[targetSample] = y_l;
         _conv_right[targetSample] = y_r;
-        *consumed = x1;
+        *consumed = -x1;
         
     }
 }
@@ -422,8 +788,24 @@ double fadeOutFactor(UInt32 offset){
 
 
 - (IBAction)followNow:(id)sender {
+
     [_ring follow];
     _fadeRequired = YES;
+    
+    UInt32 offset = UInt32([_ring readPtrLeft] - [_ring startPtrLeft]);
+    
+    g_calcState.current_grain_start = offset- 6000;
+    g_calcState.current_x = 0;
+    g_calcState.current_grain_start2 = offset - GRAIN_SIZE/2;
+    g_calcState.current_x2 = -round(GRAIN_SIZE/2 * ratio);
+
+//    g_calcState.current_grain_start = offset;
+//    g_calcState.current_x = 0;
+//    g_calcState.current_grain_start2 = offset + (SInt32)GRAIN_SIZE/2;
+//    g_calcState.current_x2 = -round(GRAIN_SIZE/2 * ratio);
+
+    
+    
 }
 
 - (IBAction)slipChanged:(id)sender {
@@ -581,6 +963,12 @@ double fadeOutFactor(UInt32 offset){
     _loopLength /= 4;
 }
 
+- (IBAction)pitchChanged:(id)sender {
+    ratio = [_sliderPitch doubleValue];
+//    NSLog(@"pitch changed to %f", [_sliderPitch doubleValue]);
+    
+    [self followNow:self];
+}
 
 void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *srcConnRefCon)
 {
@@ -633,11 +1021,6 @@ void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *sr
         [_turnTable onMIDITouchStop];
     }
 }
-
-
-
-
-
 
 
 - (void)testMIDI{

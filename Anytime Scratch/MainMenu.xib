@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="15705" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15705"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -23,16 +23,16 @@
                 <rect key="frame" x="0.0" y="0.0" width="595" height="436"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <customView id="abT-YY-zLE" customClass="TurnTableView">
+                    <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="abT-YY-zLE" customClass="TurnTableView">
                         <rect key="frame" x="91" y="66" width="353" height="322"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     </customView>
-                    <popUpButton verticalHuggingPriority="750" id="01b-D3-O1w">
+                    <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="01b-D3-O1w">
                         <rect key="frame" x="30" y="400" width="194" height="26"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="wSX-5L-Ovl" id="Tn6-5h-HWC">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                            <font key="font" metaFont="menu"/>
+                            <font key="font" metaFont="system"/>
                             <menu key="menu" id="QW0-Sp-xML">
                                 <items>
                                     <menuItem title="Item 1" state="on" id="wSX-5L-Ovl"/>
@@ -45,12 +45,12 @@
                             <action selector="inputDeviceSelected:" target="n2f-hl-4nw" id="cSM-rr-EH5"/>
                         </connections>
                     </popUpButton>
-                    <popUpButton verticalHuggingPriority="750" id="MtA-hY-hor">
+                    <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MtA-hY-hor">
                         <rect key="frame" x="384" y="400" width="194" height="26"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="V3I-ed-4PJ" id="Yse-i0-utJ">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                            <font key="font" metaFont="menu"/>
+                            <font key="font" metaFont="system"/>
                             <menu key="menu" id="4Xh-xa-d37">
                                 <items>
                                     <menuItem title="Item 1" state="on" id="V3I-ed-4PJ"/>
@@ -60,7 +60,7 @@
                             </menu>
                         </popUpButtonCell>
                     </popUpButton>
-                    <button id="Jt7-bE-Vlt">
+                    <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Jt7-bE-Vlt">
                         <rect key="frame" x="396" y="352" width="79" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="check" title="Slip" bezelStyle="regularSquare" imagePosition="left" inset="2" id="pyh-Xb-8FY">
@@ -71,7 +71,7 @@
                             <action selector="slipChanged:" target="n2f-hl-4nw" id="DpN-pF-nhG"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" id="EsW-Pj-839">
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EsW-Pj-839">
                         <rect key="frame" x="390" y="311" width="89" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Loop" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RWv-H5-M9S">
@@ -82,8 +82,8 @@
                             <action selector="loopClicked:" target="n2f-hl-4nw" id="yWc-ae-oqv"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" id="X9r-sv-ZBW">
-                        <rect key="frame" x="461" y="348" width="88" height="32"/>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="X9r-sv-ZBW">
+                        <rect key="frame" x="436" y="348" width="88" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="[F]ollow" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="VaT-AX-7ge">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -94,7 +94,7 @@
                             <action selector="followNow:" target="n2f-hl-4nw" id="XPc-j3-KCL"/>
                         </connections>
                     </button>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="oC8-EI-E5r">
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="oC8-EI-E5r">
                         <rect key="frame" x="32" y="322" width="71" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="[TAB]" id="CCS-Xi-J0h">
@@ -103,8 +103,8 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <button verticalHuggingPriority="750" id="pNu-70-nw4">
-                        <rect key="frame" x="470" y="235" width="87" height="32"/>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pNu-70-nw4">
+                        <rect key="frame" x="436" y="256" width="87" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Reverse" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="cRW-54-Ih5">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -114,7 +114,7 @@
                             <action selector="reverseClicked:" target="n2f-hl-4nw" id="5AH-IB-mdF"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" id="JYM-L6-IZE">
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JYM-L6-IZE">
                         <rect key="frame" x="479" y="311" width="69" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="x 1/2" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="5ZP-Eg-8fP">
@@ -125,7 +125,7 @@
                             <action selector="loopX1_2Clicked:" target="n2f-hl-4nw" id="ifb-nc-1y5"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" id="RQ7-3g-ejR">
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RQ7-3g-ejR">
                         <rect key="frame" x="479" y="289" width="69" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="x 1/4" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="imz-Il-Dbj">
@@ -136,7 +136,7 @@
                             <action selector="loopx1_4Cliked:" target="n2f-hl-4nw" id="7Cl-0H-wBn"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" id="KzR-gb-gRA">
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KzR-gb-gRA">
                         <rect key="frame" x="35" y="330" width="64" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="TAP" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="V4J-IC-9iT">
@@ -147,11 +147,11 @@
                             <action selector="tapClicked:" target="n2f-hl-4nw" id="R9M-by-Rjl"/>
                         </connections>
                     </button>
-                    <customView id="BIb-2k-0cX" customClass="RingView">
+                    <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BIb-2k-0cX" customClass="RingView">
                         <rect key="frame" x="91" y="9" width="353" height="49"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                     </customView>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="0tN-8R-Nbx">
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0tN-8R-Nbx">
                         <rect key="frame" x="32" y="359" width="71" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="120.00" id="n3C-8a-pF3">
@@ -160,8 +160,8 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <button verticalHuggingPriority="750" id="MXn-wR-EHV">
-                        <rect key="frame" x="463" y="66" width="101" height="92"/>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MXn-wR-EHV">
+                        <rect key="frame" x="474" y="9" width="101" height="92"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                         <buttonCell key="cell" type="square" title="Table [S]top" bezelStyle="shadowlessSquare" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="kEd-8w-bf9">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
@@ -172,6 +172,14 @@
                             <action selector="tableStopClicked:" target="n2f-hl-4nw" id="AD9-dW-xqe"/>
                         </connections>
                     </button>
+                    <slider horizontalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lbh-CZ-cx3">
+                        <rect key="frame" x="491" y="123" width="19" height="128"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <sliderCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="2" doubleValue="1" tickMarkPosition="left" sliderType="linear" id="yLG-QV-Tld"/>
+                        <connections>
+                            <action selector="pitchChanged:" target="n2f-hl-4nw" id="2rC-NS-sHS"/>
+                        </connections>
+                    </slider>
                 </subviews>
             </view>
             <connections>
@@ -857,6 +865,7 @@
                 <outlet property="_popupInputDevice" destination="01b-D3-O1w" id="grE-7u-atu"/>
                 <outlet property="_popupOutputDevice" destination="MtA-hY-hor" id="Loq-O3-cxf"/>
                 <outlet property="_ringView" destination="BIb-2k-0cX" id="aWh-sl-Vsq"/>
+                <outlet property="_sliderPitch" destination="lbh-CZ-cx3" id="jtT-jc-dKj"/>
                 <outlet property="_turnTable" destination="abT-YY-zLE" id="urZ-gu-x46"/>
             </connections>
         </customObject>

@@ -81,6 +81,15 @@ OSStatus MyRenderIn(void *inRefCon,
                                inNumberFrames,
                                ioData
                                );
+    if ( 0!=ret ){
+        NSError *err = [NSError errorWithDomain:NSOSStatusErrorDomain code:ret userInfo:nil];
+        NSLog(@"Failed AudioUnitRender err=%d(%@)", ret, [err description]);
+        return ret;
+        
+        //https://forum.juce.com/t/missing-kaudiounitproperty-maximumframesperslice/9109
+        
+    }
+    
     return ret;
 }
 

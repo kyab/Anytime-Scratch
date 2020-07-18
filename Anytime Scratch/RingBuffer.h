@@ -30,6 +30,8 @@
 -(void)advanceWritePtrSample:(SInt32)sample;
 -(float *)readPtrLeft;
 -(float *)readPtrRight;
+-(float *)startPtrLeft;
+-(float *)startPtrRight;
 -(UInt32)advanceReadPtrSample:(SInt32)sample;
 -(void)moveReadPtrToSample:(UInt32)sample;
 

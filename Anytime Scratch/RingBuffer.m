@@ -270,7 +270,7 @@
     }
     UInt32 off = w-r;
 
-    if (off > _minOffsetFrame){
+    if (off >= _minOffsetFrame){
         return &_leftBuf[_playFrame];
     }else{
         return NULL;
@@ -285,11 +285,18 @@
         w += [self frames];
     }
     UInt32 off = w-r;
-    if (off > _minOffsetFrame){
+    if (off >= _minOffsetFrame){
         return &_rightBuf[_playFrame];
     }else{
         return NULL;
     }
+}
+
+-(float *)startPtrLeft{
+    return _leftBuf;
+}
+-(float *)startPtrRight{
+    return _rightBuf;
 }
 
 -(Boolean)isShortage{
@@ -300,7 +307,7 @@
         w += [self frames];
     }
     UInt32 off = w-r;
-    if (off > _minOffsetFrame){
+    if (off >= _minOffsetFrame){
         return NO;
     }else{
         return YES;
@@ -333,12 +340,13 @@
 
 -(void)follow{
     
-    if (0 < (SInt32)_recordFrame - _minOffsetFrame){
+    if (0 > (SInt32)_recordFrame - _minOffsetFrame){
         _playFrame = [self frames] - (_minOffsetFrame - _recordFrame);
+        
     }else{
         _playFrame = _recordFrame - _minOffsetFrame;
     }
-    
+//    NSLog(@"frames = %u, w = %u, r = %u", [self frames], _recordFrame, _playFrame);
 }
 
 -(UInt32)frames{

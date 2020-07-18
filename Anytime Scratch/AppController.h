@@ -26,7 +26,10 @@
     __weak IBOutlet NSButton *_chkSlip;
     __weak IBOutlet NSButton *_btnReverse;
     __weak IBOutlet NSButton *_btnTableStop;
+    
     BOOL _reversePressing;
+    
+    __weak IBOutlet NSSlider *_sliderPitch;
     
     
     __weak IBOutlet NSButton *_btnTAP;
