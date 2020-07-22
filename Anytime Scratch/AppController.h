@@ -30,6 +30,7 @@
     BOOL _reversePressing;
     
     __weak IBOutlet NSSlider *_sliderPitch;
+    __weak IBOutlet NSSlider *_sliderFader;
     
     
     __weak IBOutlet NSButton *_btnTAP;

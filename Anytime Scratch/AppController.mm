@@ -137,6 +137,7 @@ calcState g_calcState_bk;
 
 double ratio = 1.0;
 double pitch = 1/ratio;
+double faderValue = 1.0;
 
 //-(void)consume_backyard:(SInt32)offset{
 //    if (offset >= 0){
@@ -449,6 +450,11 @@ double pitch = 1/ratio;
             _fadeRequired = false;
         }
         
+        for(int i = 0 ; i < inNumberFrames;i++) {
+            _conv_left[i] *= faderValue;
+            _conv_right[i] *= faderValue;
+        }
+                
         memcpy(ioData->mBuffers[0].mData,
                _conv_left, sizeof(float) * inNumberFrames);
         memcpy(ioData->mBuffers[1].mData,
@@ -490,7 +496,8 @@ double pitch = 1/ratio;
         }else{
             SInt32 consumed = 0;
             [self convertAtRateFromLeft:leftPtr right:rightPtr ToSamples:inNumberFrames rate:_speedRate consumedFrames:&consumed];
-            
+
+
             memcpy(ioData->mBuffers[0].mData,
                    _conv_left, sizeof(float) * inNumberFrames);
             memcpy(ioData->mBuffers[1].mData,
@@ -615,7 +622,7 @@ double pitch = 1/ratio;
         [_ring advanceWritePtrSample:inNumberFrames];
     }
     
-    return noErr;
+    return ret;
     
 }
 
@@ -695,6 +702,7 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
         
     }
 }
+
 
 double fadeInFactor(UInt32 offset){
     if (offset < 200){
@@ -965,10 +973,24 @@ double fadeOutFactor(UInt32 offset){
 
 - (IBAction)pitchChanged:(id)sender {
     ratio = [_sliderPitch doubleValue];
-//    NSLog(@"pitch changed to %f", [_sliderPitch doubleValue]);
     
-    [self followNow:self];
+//    [self followNow:self];
 }
+
+- (IBAction)faderChanged:(id)sender {
+    float val = [_sliderFader doubleValue];
+    
+    if (val >= 0){
+        faderValue = 1.0;
+    }else{
+        //1 + (-0.4) = 0.6
+        //1 + (-1.0) = 0.0;
+        faderValue = 1 + val;
+    }
+    
+    
+}
+
 
 void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *srcConnRefCon)
 {
@@ -1007,21 +1029,80 @@ void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *sr
 //    NSLog(@"onMIDICC number:%d, data:%d", number, data);
     if (number == 33 || number == 34){
         [_turnTable onMIDIScratch:number value:data chan:chan];
+        return;
+    }else if(number == 31){
+        
+        if (data > 64){
+            faderValue = (data-64.0)/64.0;
+        }else{
+            faderValue = (data-64.0)/64.0;
+        }
+        if (faderValue >= 0){
+            faderValue = 1.0;
+        }else{
+            //1 + (-0.4) = 0.6
+            //1 + (-1.0) = 0.0;
+            faderValue = 1 + faderValue;
+        }
+        
+        //Control change should be done on Main Thread
+        [self performSelectorOnMainThread:@selector(onMIDIFaderChanged:)
+                               withObject:[NSNumber numberWithInt:data] waitUntilDone:NO];
+
+        return;
+    }else if(number == 0){
+        [self onMIDITempoChanged:127-data];
+    }else{
+        //NSLog(@"onMIDICC number:%d, data:%d", number, data);
     }
+
 }
 
 -(void)onMIDINoteOn:(int)noteNumber vel:(int)vel chan:(int)chan{
     if (noteNumber == 54){
         [_turnTable onMIDITouchStart];
+        return;
     }
+
+    if (noteNumber == 11){
+        [self performSelectorOnMainThread:@selector(performClickTableStop)
+                               withObject:nil waitUntilDone:NO];
+        return;
+    }
+
 }
 
 -(void)onMIDINoteOff:(int)noteNumber vel:(int)vel chan:(int)chan{
     if (noteNumber == 54){
         [_turnTable onMIDITouchStop];
+        return;
     }
 }
 
+-(void)performClickTableStop{
+    [_btnTableStop performClick:self];
+}
+
+-(void)onMIDITempoChanged:(int)value{
+    NSLog(@"tempo changed to %d", value);
+    ratio = 1.0 + 1.0*value/127;
+    [self performSelectorOnMainThread:@selector(syncSliderPitch)
+                           withObject:nil waitUntilDone:NO];
+}
+-(void)syncSliderPitch{
+    [_sliderPitch setDoubleValue:ratio];
+}
+
+
+-(void)onMIDIFaderChanged:(NSNumber *)numberValue{
+    int value = [numberValue intValue];
+    if (value > 64){
+        [_sliderFader setDoubleValue:(value-64.0)/64.0];
+    }else{
+        [_sliderFader setDoubleValue:(value-64.0)/64.0];
+    }
+
+}
 
 - (void)testMIDI{
     NSLog(@"testMIDI");
@@ -1073,6 +1154,17 @@ void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *sr
             return;
         }
     }
+}
+
+- (IBAction)onFaderMiddle:(id)sender {
+    [_sliderFader setDoubleValue:0.0];
+    [self faderChanged:self];
+
+}
+
+- (IBAction)onFaderLeft:(id)sender {
+    [_sliderFader setDoubleValue:-1.0];
+    [self faderChanged:self];
 }
 
 @end

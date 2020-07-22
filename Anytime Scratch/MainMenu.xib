@@ -174,12 +174,44 @@
                     </button>
                     <slider horizontalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lbh-CZ-cx3">
                         <rect key="frame" x="491" y="123" width="19" height="128"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" heightSizable="YES" flexibleMaxY="YES"/>
                         <sliderCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="2" doubleValue="1" tickMarkPosition="left" sliderType="linear" id="yLG-QV-Tld"/>
                         <connections>
                             <action selector="pitchChanged:" target="n2f-hl-4nw" id="2rC-NS-sHS"/>
                         </connections>
                     </slider>
+                    <slider canDrawConcurrently="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="6St-kc-f1B">
+                        <rect key="frame" x="-2" y="17" width="87" height="24"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="-1" maxValue="1" tickMarkPosition="above" numberOfTickMarks="1" sliderType="linear" id="D4Z-Rf-Ikj"/>
+                        <connections>
+                            <action selector="faderChanged:" target="n2f-hl-4nw" id="xCk-Zw-xk8"/>
+                        </connections>
+                    </slider>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tNw-9C-Pbb">
+                        <rect key="frame" x="-6" y="38" width="26" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="r2s-dS-AW8">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent">z</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="onFaderLeft:" target="n2f-hl-4nw" id="7Dh-Z4-Hia"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tiA-zt-mSn">
+                        <rect key="frame" x="28" y="37" width="26" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="8aZ-Lh-1wO">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent">x</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="onFaderMiddle:" target="n2f-hl-4nw" id="NiM-nG-LQP"/>
+                        </connections>
+                    </button>
                 </subviews>
             </view>
             <connections>
@@ -865,6 +897,7 @@
                 <outlet property="_popupInputDevice" destination="01b-D3-O1w" id="grE-7u-atu"/>
                 <outlet property="_popupOutputDevice" destination="MtA-hY-hor" id="Loq-O3-cxf"/>
                 <outlet property="_ringView" destination="BIb-2k-0cX" id="aWh-sl-Vsq"/>
+                <outlet property="_sliderFader" destination="6St-kc-f1B" id="TLK-D2-Czg"/>
                 <outlet property="_sliderPitch" destination="lbh-CZ-cx3" id="jtT-jc-dKj"/>
                 <outlet property="_turnTable" destination="abT-YY-zLE" id="urZ-gu-x46"/>
             </connections>
