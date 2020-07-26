@@ -136,8 +136,14 @@ calcState g_calcState;
 calcState g_calcState_bk;
 
 double ratio = 1.0;
-double pitch = 1/ratio;
+double g_ratio = 1.0;
 double faderValue = 1.0;
+
+const int FADE_STATE_NONE = 0;
+const int FADE_STATE_OUT = 1;
+const int FADE_STATE_IN = 2;
+
+int fadeState = FADE_STATE_NONE;
 
 //-(void)consume_backyard:(SInt32)offset{
 //    if (offset >= 0){
@@ -186,14 +192,20 @@ double faderValue = 1.0;
         for (UInt32 c = 0; c < offset; c++){
             g_calcState.start_x++;
 
-
+            int overCount = 0;
             if( g_calcState.current_x > GRAIN_SIZE * (1+(ratio-1)/2) ){
                 g_calcState.current_grain_start += GRAIN_SIZE;
                 g_calcState.current_x = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+                overCount++;
             }
             if( g_calcState.current_x2 > GRAIN_SIZE * (1+(ratio-1)/2) ){
                 g_calcState.current_grain_start2 += GRAIN_SIZE;
                 g_calcState.current_x2 = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+                overCount++;
+            }
+            
+            if (overCount == 2){
+                NSLog(@"overCount with consume");
             }
             
             g_calcState.current_x++;
@@ -243,13 +255,19 @@ double faderValue = 1.0;
     if (offset >= 0){
         for (UInt32 c = 0; c < offset; c++){
         
+            int overCount = 0;
             if( current_x > GRAIN_SIZE * (1+(ratio-1)/2) ){
                 current_grain_start += GRAIN_SIZE;
                 current_x = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+                overCount++;
             }
             if( current_x2 > GRAIN_SIZE * (1+(ratio-1)/2) ){
                 current_grain_start2 += GRAIN_SIZE;
                 current_x2 = round( (GRAIN_SIZE*(1+(ratio-1)/2) - GRAIN_SIZE) * (-1) );
+                overCount++;
+            }
+            if (overCount == 2){
+                NSLog(@"overCount");
             }
             
             current_x++;
@@ -376,6 +394,12 @@ double faderValue = 1.0;
         //experiment pitch shift with scratch support
 
         double speedRate = _speedRate;
+        if (ratio != g_ratio){
+            if (fadeState == FADE_STATE_IN){
+                ratio = g_ratio;
+                [self followNow:self];
+            }
+        }
         
         //before ratechange.
         float reqNumberFrames = inNumberFrames * speedRate;
@@ -401,11 +425,10 @@ double faderValue = 1.0;
             pTmpLeft[i] = left;
             pTmpRight[i] = right;
             if (abs(left) > 1.01 || abs(right) > 1.01){
-                NSLog(@"overflow in stretch phase left=%f, right=%f", left, right);
+//                NSLog(@"overflow in stretch phase left=%f, right=%f", left, right);
             }
         }
 
-        
         [self consume:round(reqNumberFrames*ratio)];
 
         UInt32 resampledNum = ceil(abs(reqNumberFrames))+1;
@@ -431,7 +454,7 @@ double faderValue = 1.0;
                 ((float *)ioData->mBuffers[1].mData)[i] = pFinRight[i];
             }
             if (abs(pFinLeft[i]) > 1.01 || abs(pFinRight[i]) > 1.01){
-                NSLog(@"overflow in shift phase left=%f, right=%f", pFinLeft[i] , pFinRight[i]);
+//                NSLog(@"overflow in shift phase left=%f, right=%f", pFinLeft[i] , pFinRight[i]);
             }
             
         }
@@ -445,9 +468,13 @@ double faderValue = 1.0;
         free(pFinLeft);
         free(pFinRight);
         
-        if (_fadeRequired){
-            [self fadeInFromLeft:_conv_left right:_conv_right ToSamples:inNumberFrames];
+        if (fadeState == FADE_STATE_OUT){
+            [self fadeOutFromLeft:_conv_left right:_conv_right ToSamples:inNumberFrames];
             _fadeRequired = false;
+            fadeState = FADE_STATE_IN;
+        }else if (fadeState == FADE_STATE_IN){
+            [self fadeInFromLeft:_conv_left right:_conv_right ToSamples:inNumberFrames];
+            fadeState = FADE_STATE_NONE;
         }
         
         for(int i = 0 ; i < inNumberFrames;i++) {
@@ -461,9 +488,9 @@ double faderValue = 1.0;
                _conv_right, sizeof(float) * inNumberFrames);
         
          if (speedRate >= 0){
-              [_ring advanceReadPtrSample:consumedFrames];
+              [_ring advanceReadPtrSample:consumedFrames+1];
          }else{
-             [_ring advanceReadPtrSample:consumedFrames];
+             [_ring advanceReadPtrSample:consumedFrames-1];
          }
 
         return noErr;
@@ -664,7 +691,7 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
         float y_r = linearInterporation(x0, y0_r, x1, y1_r, targetSample*rate);
         
         if (abs(y_l) > 1.01 || abs(y_r) > 1.01){
-            NSLog(@"overflow at convertAtRatePlusFromLeft %f,%f", y_l, y_r);
+//            NSLog(@"overflow at convertAtRatePlusFromLeft %f,%f", y_l, y_r);
             
         }
 
@@ -693,7 +720,7 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
         float y_r = linearInterporation(x0, y0_r, x1, y1_r, targetSample*rate);
         
         if (abs(y_l) > 1.01 || abs(y_r) > 1.01){
-            NSLog(@"overflow at convertAtRateMinusFromLeft %f,%f", y_l, y_r);
+//            NSLog(@"overflow at convertAtRateMinusFromLeft %f,%f", y_l, y_r);
             
         }
         _conv_left[targetSample] = y_l;
@@ -705,16 +732,17 @@ static double linearInterporation(int x0, double y0, int x1, double y1, double x
 
 
 double fadeInFactor(UInt32 offset){
-    if (offset < 200){
-        return 1/200.0*offset;
+    if (offset < 32){
+        return 1/32.0*offset;
     }else{
         return 1.0;
     }
 }
 
 double fadeOutFactor(UInt32 offset){
-    if (offset < 200){
-        return 1/200.0 * offset;
+    if (offset < 32){
+        return 1/32.0 * offset;
+        return 1.0;
     }else{
         return 1.0;
     }
@@ -801,19 +829,19 @@ double fadeOutFactor(UInt32 offset){
     _fadeRequired = YES;
     
     UInt32 offset = UInt32([_ring readPtrLeft] - [_ring startPtrLeft]);
-    
-    g_calcState.current_grain_start = offset- 6000;
+
+    g_calcState.current_grain_start = offset- GRAIN_SIZE;
     g_calcState.current_x = 0;
     g_calcState.current_grain_start2 = offset - GRAIN_SIZE/2;
-    g_calcState.current_x2 = -round(GRAIN_SIZE/2 * ratio);
-
-//    g_calcState.current_grain_start = offset;
+    g_calcState.current_x2 = -round(GRAIN_SIZE/2 * g_ratio);
+    
+    
+//    g_calcState.current_grain_start = offset- 6000;
 //    g_calcState.current_x = 0;
-//    g_calcState.current_grain_start2 = offset + (SInt32)GRAIN_SIZE/2;
+//    g_calcState.current_grain_start2 = offset - GRAIN_SIZE/2;
 //    g_calcState.current_x2 = -round(GRAIN_SIZE/2 * ratio);
-
     
-    
+   
 }
 
 - (IBAction)slipChanged:(id)sender {
@@ -972,8 +1000,9 @@ double fadeOutFactor(UInt32 offset){
 }
 
 - (IBAction)pitchChanged:(id)sender {
-    ratio = [_sliderPitch doubleValue];
+    g_ratio = [_sliderPitch doubleValue];
     
+    fadeState = FADE_STATE_OUT;
 //    [self followNow:self];
 }
 
@@ -1085,12 +1114,13 @@ void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *sr
 
 -(void)onMIDITempoChanged:(int)value{
     NSLog(@"tempo changed to %d", value);
-    ratio = 1.0 + 1.0*value/127;
+    g_ratio = 1.0 + 1.0*value/127;
+    fadeState = FADE_STATE_OUT;
     [self performSelectorOnMainThread:@selector(syncSliderPitch)
                            withObject:nil waitUntilDone:NO];
 }
 -(void)syncSliderPitch{
-    [_sliderPitch setDoubleValue:ratio];
+    [_sliderPitch setDoubleValue:g_ratio];
 }
 
 
