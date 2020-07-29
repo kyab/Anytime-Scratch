@@ -393,6 +393,16 @@ int fadeState = FADE_STATE_NONE;
     if(1){
         //experiment pitch shift with scratch support
 
+        if(_tableStopped && !_speedChanging){
+            UInt32 sampleNum = inNumberFrames;
+            float *pLeft = (float *)ioData->mBuffers[0].mData;
+            float *pRight = (float *)ioData->mBuffers[1].mData;
+            bzero(pLeft,sizeof(float)*sampleNum );
+            bzero(pRight,sizeof(float)*sampleNum );
+            return noErr;
+        }
+        
+        
         double speedRate = _speedRate;
         if (ratio != g_ratio){
             if (fadeState == FADE_STATE_IN){
@@ -487,11 +497,11 @@ int fadeState = FADE_STATE_NONE;
         memcpy(ioData->mBuffers[1].mData,
                _conv_right, sizeof(float) * inNumberFrames);
         
-         if (speedRate >= 0){
-              [_ring advanceReadPtrSample:consumedFrames+1];
-         }else{
-             [_ring advanceReadPtrSample:consumedFrames-1];
-         }
+        if (speedRate >= 0){
+            [_ring advanceReadPtrSample:consumedFrames+1];
+        }else{
+            [_ring advanceReadPtrSample:consumedFrames-1];
+        }
 
         return noErr;
         
@@ -940,6 +950,7 @@ double fadeOutFactor(UInt32 offset){
         _speedRate = 0.0f;
         [_tableStopTimer invalidate];
         _tableStopped = YES;
+        _speedChanging = NO;
         return;
     }else{
         _speedChanging = YES;
