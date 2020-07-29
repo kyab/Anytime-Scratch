@@ -391,7 +391,7 @@ int fadeState = FADE_STATE_NONE;
     }
     
     if(1){
-        //experiment pitch shift with scratch support
+//        experiment pitch shift with scratch support
 
         if(_tableStopped && !_speedChanging){
             UInt32 sampleNum = inNumberFrames;
@@ -407,7 +407,11 @@ int fadeState = FADE_STATE_NONE;
         if (ratio != g_ratio){
             if (fadeState == FADE_STATE_IN){
                 ratio = g_ratio;
-                [self followNow:self];
+                if (_loop){
+                    [self syncCalcState];
+                }else{
+                    [self followNow:self];
+                }
             }
         }
         
@@ -419,27 +423,61 @@ int fadeState = FADE_STATE_NONE;
         float *pTmpLeft = (float *)malloc(numberStretchedFrames * sizeof(float));
         float *pTmpRight = (float *)malloc(numberStretchedFrames * sizeof(float));
         
-        for (UInt32 i = 0; i < numberStretchedFrames; i++){
-            float left = 0;
-            float right = 0;
-            
-            SInt32 offset = 0;
-            if ((reqNumberFrames) > 0){
-                offset = i;
-            }else{
-                offset = -(SInt32)i;
+        if(_loop){
+            UInt32 written = 0;
+            SInt32 i = 0;
+            while(true){
+                
+                SInt32 offset = 0;
+                if (reqNumberFrames > 0){
+                    offset = i;
+                }else{
+                    offset = -i;
+                }
+                
+                float left = 0;
+                float right = 0;
+                [self getAt:offset outLeft:&left outRight:&right];
+                pTmpLeft[i] = left;
+                pTmpRight[i] = right;
+                
+                i++;
+                if (++_writtenInLoop >= _loopLength * ratio){
+                    _writtenInLoop = 0;
+                    i = 0;
+                    [_ring moveReadPtrToSample:_loopStartFrame];
+                    [self syncCalcState];
+                }else{
+//
+                }
+                if(++written == numberStretchedFrames){
+                    [self consume:round(reqNumberFrames*ratio)];
+                    break;
+                }
             }
-            
-            [self getAt:offset outLeft:&left outRight:&right];
+        }else{
         
-            pTmpLeft[i] = left;
-            pTmpRight[i] = right;
-            if (abs(left) > 1.01 || abs(right) > 1.01){
-//                NSLog(@"overflow in stretch phase left=%f, right=%f", left, right);
+            for (UInt32 i = 0; i < numberStretchedFrames; i++){
+                float left = 0;
+                float right = 0;
+    
+                SInt32 offset = 0;
+                if ((reqNumberFrames) > 0){
+                    offset = i;
+                }else{
+                    offset = -(SInt32)i;
+                }
+    
+                [self getAt:offset outLeft:&left outRight:&right];
+                pTmpLeft[i] = left;
+                pTmpRight[i] = right;
+                if (abs(left) > 1.01 || abs(right) > 1.01){
+    //                NSLog(@"overflow in stretch phase left=%f, right=%f", left, right);
+                }
             }
-        }
 
-        [self consume:round(reqNumberFrames*ratio)];
+            [self consume:round(reqNumberFrames*ratio)];
+        }
 
         UInt32 resampledNum = ceil(abs(reqNumberFrames))+1;
         
@@ -838,22 +876,20 @@ double fadeOutFactor(UInt32 offset){
     [_ring follow];
     _fadeRequired = YES;
     
-    UInt32 offset = UInt32([_ring readPtrLeft] - [_ring startPtrLeft]);
+    [self syncCalcState];
+}
 
+- (void)syncCalcState{
+    
+    UInt32 offset = UInt32([_ring readPtrLeft] - [_ring startPtrLeft]);
+    
     g_calcState.current_grain_start = offset- GRAIN_SIZE;
     g_calcState.current_x = 0;
     g_calcState.current_grain_start2 = offset - GRAIN_SIZE/2;
     g_calcState.current_x2 = -round(GRAIN_SIZE/2 * g_ratio);
-    
-    
-//    g_calcState.current_grain_start = offset- 6000;
-//    g_calcState.current_x = 0;
-//    g_calcState.current_grain_start2 = offset - GRAIN_SIZE/2;
-//    g_calcState.current_x2 = -round(GRAIN_SIZE/2 * ratio);
-    
-   
-}
 
+}
+    
 - (IBAction)slipChanged:(id)sender {
     if ([_chkSlip state] == NSOnState){
         _slip = YES;
@@ -865,16 +901,15 @@ double fadeOutFactor(UInt32 offset){
 - (IBAction)reverseClicked:(id)sender {
     if (_slip){
         if (_reversePressing){
-            //up
+            //release
             _speedChanging = NO;
             _speedRate = 1.0;
-            [_ring follow];
-            _fadeRequired = YES;
+            [self followNow:self];
             [_btnReverse setState:NSOffState];
             [_turnTable setReverse:NO];
             _reversePressing = NO;
         }else{
-            //down
+            //press
             _speedChanging = YES;
             _speedRate = -1.0;
             [_btnReverse setState:NSOnState];
@@ -890,12 +925,10 @@ double fadeOutFactor(UInt32 offset){
                 _speedChanging = YES;
                 _speedRate = -1.0;
                 [_turnTable setReverse:YES];
-
             }else{
                 _speedChanging = NO;
                 _speedRate = 1.0;
-                [_ring follow];
-                _fadeRequired = YES;
+                [self syncCalcState];
                 [_turnTable setReverse:NO];
             }
         }
@@ -907,15 +940,20 @@ double fadeOutFactor(UInt32 offset){
         _loopPressing = NO;
         if ([_btnLoop state] == NSOnState){
             _speedChanging = NO;
-            _speedRate = 0;
+            _speedRate = 1.0;
             _loop = YES;
             _loopLength = 44100 / (_bpm/60) * 4;
             _loopStartFrame = [_ring advanceReadPtrSample:-1.0*_loopLength];
+            _writtenInLoop = 0;
+            [self syncCalcState];
             
         }else{
             _loop = NO;
-            [_ring follow];
-            _fadeRequired = YES;
+            if (_slip){
+                [self followNow:self];
+            }else{
+                
+            }
         }
     
     }else{
