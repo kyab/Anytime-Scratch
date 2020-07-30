@@ -943,10 +943,10 @@ double fadeOutFactor(UInt32 offset){
             _speedRate = 1.0;
             _loop = YES;
             _loopLength = 44100 / (_bpm/60) * 4;
-            _loopStartFrame = [_ring advanceReadPtrSample:-1.0*_loopLength];
+//            _loopStartFrame = [_ring advanceReadPtrSample:-1.0*_loopLength];
             _writtenInLoop = 0;
-            [self syncCalcState];
-            
+//            [self syncCalcState];
+//            _loopStartFrame = [_ring advanceReadPtrSample:0];
         }else{
             _loop = NO;
             if (_slip){
@@ -961,6 +961,33 @@ double fadeOutFactor(UInt32 offset){
 
     }
 }
+
+- (IBAction)loopSClicked:(id)sender {
+    _loop = NO;
+    _loopStartFrame = [_ring advanceReadPtrSample:0];
+    
+}
+
+- (IBAction)loopEClicked:(id)sender {
+
+    _loopLength = [_ring readPtrDistanceFrom:_loopStartFrame];
+        
+    [_ring moveReadPtrToSample:_loopStartFrame];
+    [self syncCalcState];
+    
+    _writtenInLoop = 0;
+    _loop = YES;
+    
+    
+}
+
+- (IBAction)loopExitClicked:(id)sender {
+    _loop = NO;
+    if (_slip){
+        [self followNow:self];
+    }
+}
+
 
 - (IBAction)tableStopClicked:(id)sender {
     if (_btnTableStop.state == NSOnState){

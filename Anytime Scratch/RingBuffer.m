@@ -332,6 +332,15 @@
     _playFrame = sample;
 }
 
+-(UInt32)readPtrDistanceFrom:(SInt32)sample{
+    if (_playFrame >= sample){
+        return (UInt32)(_playFrame - sample);
+    }else{
+        return (UInt32)([self frames] - sample) + (UInt32)_playFrame;
+    }
+}
+
+
 
 -(void)resetBuffer{
     _playFrame = 0;

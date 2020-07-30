@@ -34,6 +34,7 @@
 -(float *)startPtrRight;
 -(UInt32)advanceReadPtrSample:(SInt32)sample;
 -(void)moveReadPtrToSample:(UInt32)sample;
+-(UInt32)readPtrDistanceFrom:(SInt32)sample;
 
 -(void)resetBuffer;
 -(void)follow;
