@@ -15,16 +15,24 @@
 
 -(void)awakeFromNib{
     
+    _ring = [[RingBuffer alloc] init];
+    [_ringView setRingBuffer:_ring];
+    
+    _delayEnabled = NO;
+    _delayRing = [[RingBuffer alloc] init];
+    
+//    _lpf_fir = [[LPF_FIR alloc] init];
+    _lpf_iir = [[LPF_IIR alloc] init];
+    _threeBandEq = [[ThreeBandEq alloc] init];
+    _djFilter = [[DJFilter alloc] init];
+    
+  
     _ae = [[AudioEngine alloc] init];
     if ([_ae initialize]){
         NSLog(@"AudioEngine all OK");
     }
     [_ae setRenderDelegate:(id<AudioEngineDelegate>)self];
     
-//    [_ae testAirPlay];
-    
-    _ring = [[RingBuffer alloc] init];
-    [_ringView setRingBuffer:_ring];
     
     [_popupInputDevice removeAllItems];
     NSArray *inputs = [_ae listDevices:NO];
@@ -78,6 +86,7 @@
     
     [self testMIDI];
     
+
     
 }
 
@@ -447,6 +456,8 @@ int fadeState = FADE_STATE_NONE;
                     i = 0;
                     [_ring moveReadPtrToSample:_loopStartFrame];
                     [self syncCalcState];
+                    _fadeRequired = true;
+                    fadeState = FADE_STATE_IN;
                 }else{
 //
                 }
@@ -529,6 +540,18 @@ int fadeState = FADE_STATE_NONE;
             _conv_left[i] *= faderValue;
             _conv_right[i] *= faderValue;
         }
+        
+//        if(_delayEnabled){
+            [self processDelayFromLeft:_conv_left right:_conv_right samples:inNumberFrames];
+//        }
+        
+//        [_lpf_fir processFromLeft:_conv_left right:_conv_right samples:inNumberFrames];
+        
+//      [_lpf_iir processFromLeft:_conv_left right:_conv_right samples:inNumberFrames];
+//        [_threeBandEq processFromLeft:_conv_left right:_conv_right
+//                              samples:inNumberFrames];
+        
+        [_djFilter processFromLeft:_conv_left right:_conv_right samples:inNumberFrames];
                 
         memcpy(ioData->mBuffers[0].mData,
                _conv_left, sizeof(float) * inNumberFrames);
@@ -846,6 +869,30 @@ double fadeOutFactor(UInt32 offset){
     }
 }
 
+
+-(void)processDelayFromLeft:(float *)leftPtr right:(float *)rightPtr samples:(int)inNumberFrames{
+    
+    float *left = [_delayRing writePtrLeft];
+    float *right = [_delayRing writePtrRight];
+    if (_delayEnabled){
+        memcpy(left, leftPtr, sizeof(float) * inNumberFrames);
+        memcpy(right, rightPtr, sizeof(float) * inNumberFrames);
+    }else{
+        bzero(left, sizeof(float)*inNumberFrames);
+        bzero(right, sizeof(float)*inNumberFrames);
+    }
+    [_delayRing advanceWritePtrSample:inNumberFrames];
+    
+    for(int i = 0; i < inNumberFrames; i++){
+        for(int r = 0 ; r < 2 ; r++){
+            int offset = i - 44100*0.2*(r+1);
+            leftPtr[i] += left[offset] * pow(0.5,r);
+            rightPtr[i] += right[offset] * pow(0.5,r);
+        }
+    }
+
+}
+
 -(void)turnTableSpeedRateChanged{
     
     _speedRate = [_turnTable speedRate];
@@ -978,6 +1025,9 @@ double fadeOutFactor(UInt32 offset){
     _writtenInLoop = 0;
     _loop = YES;
     
+    _fadeRequired = true;
+    fadeState = FADE_STATE_IN;
+    
     
 }
 
@@ -986,6 +1036,9 @@ double fadeOutFactor(UInt32 offset){
     if (_slip){
         [self followNow:self];
     }
+    
+    _fadeRequired = true;
+    fadeState = FADE_STATE_IN;
 }
 
 
@@ -1092,9 +1145,33 @@ double fadeOutFactor(UInt32 offset){
         //1 + (-1.0) = 0.0;
         faderValue = 1 + val;
     }
-    
-    
 }
+
+- (IBAction)delayChanged:(id)sender {
+    if ([_chkDelay state] == NSOnState){
+        _delayEnabled = YES;
+    }else{
+        _delayEnabled = NO;
+    }
+}
+
+- (IBAction)eqLowChanged:(id)sender {
+
+    NSLog(@"Low:%f", [_sliderLow doubleValue]);
+    [_threeBandEq setGainLow:[_sliderLow doubleValue]];
+}
+
+- (IBAction)eqMidChanged:(id)sender {
+    [_threeBandEq setGainMid:[_sliderMid doubleValue]];
+}
+- (IBAction)eqHighChanged:(id)sender {
+    [_threeBandEq setGainHigh:[_sliderHigh doubleValue]];
+}
+
+- (IBAction)djFilterChanged:(id)sender {
+    [_djFilter setFilterValue:[_sliderDJFilter doubleValue]];
+}
+
 
 
 void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *srcConnRefCon)
@@ -1174,7 +1251,23 @@ void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *sr
                                withObject:nil waitUntilDone:NO];
         return;
     }
+    
+    if(noteNumber == 0x10){
+        [self performSelectorOnMainThread:@selector(performClickLoopS)
+                               withObject:nil waitUntilDone:NO];
+        return;
+    }
 
+    if(noteNumber == 0x11){
+        [self performSelectorOnMainThread:@selector(performClickLoopE)
+                               withObject:nil waitUntilDone:NO];
+        return;
+    }
+    
+    if(noteNumber == 0x4d){
+        [self performSelectorOnMainThread:@selector(performClickLoopExit) withObject:nil waitUntilDone:NO];
+        return;
+    }
 }
 
 -(void)onMIDINoteOff:(int)noteNumber vel:(int)vel chan:(int)chan{
@@ -1186,6 +1279,19 @@ void MIDIInputProc(const MIDIPacketList *pktList, void *readProcRefCon, void *sr
 
 -(void)performClickTableStop{
     [_btnTableStop performClick:self];
+}
+
+-(void)performClickLoopS{
+    [_btnLoopS performClick:self];
+}
+
+-(void)performClickLoopE{
+    [_btnLoopE performClick:self];
+    
+}
+
+-(void)performClickLoopExit{
+    [_btnLoopExit performClick:self];
 }
 
 -(void)onMIDITempoChanged:(int)value{

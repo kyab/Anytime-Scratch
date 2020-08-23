@@ -11,6 +11,10 @@
 #import "RingBuffer.h"
 #import "RingView.h"
 #import "TurnTableView.h"
+#import "LPF_FIR.h"
+#import "LPF_IIR.h"
+#import "3BandEq.h"
+#import "DJFilter.h"
 
 
 @interface AppController : NSObject{
@@ -46,6 +50,9 @@
     UInt32 _loopStartFrame;
     UInt32 _loopLength;
     UInt32 _writtenInLoop;
+    __weak IBOutlet NSButton *_btnLoopS;
+    __weak IBOutlet NSButton *_btnLoopE;
+    __weak IBOutlet NSButton *_btnLoopExit;
     
     
     float _conv_left[1024];
@@ -61,6 +68,24 @@
     Boolean _speedChanging;
     double _speedRate;
 
+    
+    //delay
+    Boolean _delayEnabled;
+    RingBuffer *_delayRing;
+    __weak IBOutlet NSButton *_chkDelay;
+    
+    //LPF (FIR)
+    LPF_FIR *_lpf_fir;
+    LPF_IIR *_lpf_iir;
+   
+    ThreeBandEq *_threeBandEq;
+    __weak IBOutlet NSSlider *_sliderLow;
+    __weak IBOutlet NSSlider *_sliderMid;
+    __weak IBOutlet NSSlider *_sliderHigh;
+    
+    DJFilter *_djFilter;
+    __weak IBOutlet NSSlider *_sliderDJFilter;
+    
 }
 
 -(void)terminate;   //from AppDelegate

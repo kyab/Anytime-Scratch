@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EB825E5924DD95A600509F6A /* LPF_FIR.m in Sources */ = {isa = PBXBuildFile; fileRef = EB825E5824DD95A600509F6A /* LPF_FIR.m */; };
+		EB825E5C24DD9DBE00509F6A /* soundutil.c in Sources */ = {isa = PBXBuildFile; fileRef = EB825E5B24DD9DBE00509F6A /* soundutil.c */; };
+		EB825E5F24DE29C900509F6A /* LPF_IIR.m in Sources */ = {isa = PBXBuildFile; fileRef = EB825E5E24DE29C900509F6A /* LPF_IIR.m */; };
+		EB825E6224DEBE3C00509F6A /* 3BandEq.m in Sources */ = {isa = PBXBuildFile; fileRef = EB825E6124DEBE3C00509F6A /* 3BandEq.m */; };
+		EB825E6524E2CC1C00509F6A /* HPF_IIR.m in Sources */ = {isa = PBXBuildFile; fileRef = EB825E6424E2CC1C00509F6A /* HPF_IIR.m */; };
+		EB825E6824E2CCE900509F6A /* DJFilter.m in Sources */ = {isa = PBXBuildFile; fileRef = EB825E6724E2CCE900509F6A /* DJFilter.m */; };
 		EB968B071EDC544800CAE50B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B061EDC544800CAE50B /* AppDelegate.m */; };
 		EB968B0A1EDC544800CAE50B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EB968B091EDC544800CAE50B /* main.m */; };
 		EB968B0F1EDC544800CAE50B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EB968B0E1EDC544800CAE50B /* Assets.xcassets */; };
@@ -19,6 +25,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		EB825E5724DD95A600509F6A /* LPF_FIR.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LPF_FIR.h; sourceTree = "<group>"; };
+		EB825E5824DD95A600509F6A /* LPF_FIR.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LPF_FIR.m; sourceTree = "<group>"; };
+		EB825E5A24DD9DBE00509F6A /* soundutil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = soundutil.h; sourceTree = "<group>"; };
+		EB825E5B24DD9DBE00509F6A /* soundutil.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = soundutil.c; sourceTree = "<group>"; };
+		EB825E5D24DE29C900509F6A /* LPF_IIR.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LPF_IIR.h; sourceTree = "<group>"; };
+		EB825E5E24DE29C900509F6A /* LPF_IIR.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LPF_IIR.m; sourceTree = "<group>"; };
+		EB825E6024DEBE3C00509F6A /* 3BandEq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = 3BandEq.h; sourceTree = "<group>"; };
+		EB825E6124DEBE3C00509F6A /* 3BandEq.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = 3BandEq.m; sourceTree = "<group>"; };
+		EB825E6324E2CC1C00509F6A /* HPF_IIR.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HPF_IIR.h; sourceTree = "<group>"; };
+		EB825E6424E2CC1C00509F6A /* HPF_IIR.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HPF_IIR.m; sourceTree = "<group>"; };
+		EB825E6624E2CCE900509F6A /* DJFilter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DJFilter.h; sourceTree = "<group>"; };
+		EB825E6724E2CCE900509F6A /* DJFilter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DJFilter.m; sourceTree = "<group>"; };
 		EB968B021EDC544800CAE50B /* Anytime Scratch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Anytime Scratch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB968B051EDC544800CAE50B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		EB968B061EDC544800CAE50B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -70,6 +88,16 @@
 			children = (
 				EB968B241EDCEBE800CAE50B /* AppController.h */,
 				EB968B251EDCEBE800CAE50B /* AppController.mm */,
+				EB825E5724DD95A600509F6A /* LPF_FIR.h */,
+				EB825E5824DD95A600509F6A /* LPF_FIR.m */,
+				EB825E6024DEBE3C00509F6A /* 3BandEq.h */,
+				EB825E6124DEBE3C00509F6A /* 3BandEq.m */,
+				EB825E5D24DE29C900509F6A /* LPF_IIR.h */,
+				EB825E5E24DE29C900509F6A /* LPF_IIR.m */,
+				EB825E6324E2CC1C00509F6A /* HPF_IIR.h */,
+				EB825E6424E2CC1C00509F6A /* HPF_IIR.m */,
+				EB825E6624E2CCE900509F6A /* DJFilter.h */,
+				EB825E6724E2CCE900509F6A /* DJFilter.m */,
 				EB968B261EDCEBE800CAE50B /* AudioEngine.h */,
 				EB968B271EDCEBE800CAE50B /* AudioEngine.m */,
 				EB968B2E1EDCEC0200CAE50B /* TurnTableView.h */,
@@ -84,6 +112,8 @@
 				EB968B0E1EDC544800CAE50B /* Assets.xcassets */,
 				EB968B131EDC544800CAE50B /* Info.plist */,
 				EB968B081EDC544800CAE50B /* Supporting Files */,
+				EB825E5A24DD9DBE00509F6A /* soundutil.h */,
+				EB825E5B24DD9DBE00509F6A /* soundutil.c */,
 			);
 			path = "Anytime Scratch";
 			sourceTree = "<group>";
@@ -137,6 +167,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -169,11 +200,17 @@
 			files = (
 				EB968B311EDCEC0200CAE50B /* RingView.m in Sources */,
 				EB968B2B1EDCEBE800CAE50B /* AudioEngine.m in Sources */,
+				EB825E5C24DD9DBE00509F6A /* soundutil.c in Sources */,
 				EB968B2A1EDCEBE800CAE50B /* AppController.mm in Sources */,
+				EB825E6224DEBE3C00509F6A /* 3BandEq.m in Sources */,
 				EB968B0A1EDC544800CAE50B /* main.m in Sources */,
+				EB825E5F24DE29C900509F6A /* LPF_IIR.m in Sources */,
 				EB968B301EDCEC0200CAE50B /* RingBuffer.m in Sources */,
 				EB968B321EDCEC0200CAE50B /* TurnTableView.m in Sources */,
+				EB825E6524E2CC1C00509F6A /* HPF_IIR.m in Sources */,
+				EB825E5924DD95A600509F6A /* LPF_FIR.m in Sources */,
 				EB968B071EDC544800CAE50B /* AppDelegate.m in Sources */,
+				EB825E6824E2CCE900509F6A /* DJFilter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
